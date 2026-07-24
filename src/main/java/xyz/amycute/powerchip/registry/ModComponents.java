@@ -37,16 +37,25 @@ public class ModComponents
     private static ChipComponent buildChipComponent(int pinCount)
     {
         int cols = pinCount / 2;
-        ComponentFootprint.Builder builder = new ComponentFootprint.Builder(cols, 2, "component." + PowerChips.MOD_ID + ".chip", null);
+        int totalRows = totalRowsFor(pinCount);
+        int bottomRow = totalRows - 1;
+        ComponentFootprint.Builder builder = new ComponentFootprint.Builder(cols, totalRows, "component." + PowerChips.MOD_ID + ".chip", null);
         for (int pin = 0; pin < pinCount; pin++)
         {
             int col = pin % cols;
-            int row = pin / cols;
+            int row = (pin / cols == 0) ? 0 : bottomRow;
             String pinNumber = Integer.toString(pin + 1);
             builder.addPad(col, row, pin, "PIN " + pinNumber, pinNumber);
         }
         ComponentFootprint footprint = builder.withOutline().build();
         return new ChipComponent(footprint, pinCount);
+    }
+
+    private static int totalRowsFor(int pinCount)
+    {
+        if (pinCount >= 20) return 4;
+        if (pinCount >= 10) return 3;
+        return 2;
     }
 
     private static IOPinComponent buildIOPinComponent()

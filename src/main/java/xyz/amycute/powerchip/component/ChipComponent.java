@@ -56,9 +56,19 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
         return pinCount;
     }
 
-    public static int smallestFittingSize(int pinsUsed)
+    public static int designatedSize(CompoundTag schematicTag)
     {
-        for (int size : SIZES) if (size >= pinsUsed) return size;
+        if (schematicTag == null || schematicTag.isEmpty()) return -1;
+
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
+        if (schematic == null) return -1;
+
+        for (PlacedComponent inner : schematic.components())
+        {
+            if (!(inner.component instanceof IOPinComponent)) continue;
+            if (!inner.has(IOPinComponent.PIN_COUNT)) continue;
+            return inner.get(IOPinComponent.PIN_COUNT);
+        }
         return -1;
     }
 
@@ -78,16 +88,16 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
     public static String getPinLabel(PlacedComponent placed, int pin)
     {
         CircuitSchematic schematic = getInnerSchematic(placed);
-        
+
         if (schematic == null) return null;
-        
+
         for (PlacedComponent inner : schematic.components())
         {
             if (!(inner.component instanceof IOPinComponent)) continue;
             if (inner.get(IOPinComponent.PIN) != pin) continue;
-            
+
             String label = inner.getString(IOPinComponent.PIN_LABEL);
-            
+
             if (label != null && !label.isEmpty()) return label;
         }
         return null;
@@ -102,22 +112,22 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
     {
         if (currentDepth >= MAX_CHIP_DEPTH) return currentDepth;
         if (schematicTag == null || schematicTag.isEmpty()) return currentDepth;
-        
+
         CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
-        
+
         if (schematic == null) return currentDepth;
-        
+
         int maxDepth = currentDepth;
         for (PlacedComponent inner : schematic.components())
         {
             if (!(inner.component instanceof ChipComponent)) continue;
-            
+
             CompoundTag innerSchematic = inner.get(SCHEMATIC);
-            
+
             if (innerSchematic == null || innerSchematic.isEmpty()) continue;
-            
+
             int depth = getChipDepth(innerSchematic, currentDepth + 1);
-            
+
             if (depth > maxDepth) maxDepth = depth;
             if (maxDepth >= MAX_CHIP_DEPTH) break;
         }
@@ -129,23 +139,6 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
         return getChipDepth(schematicTag) >= MAX_CHIP_DEPTH;
     }
 
-    public static int usedPinCount(CompoundTag schematicTag)
-    {
-        if (schematicTag == null || schematicTag.isEmpty()) return 0;
-        
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
-        if (schematic == null) return 0;
-        
-        int highest = -1;
-        for (PlacedComponent inner : schematic.components())
-        {
-            if (!(inner.component instanceof IOPinComponent)) continue;
-            int pin = inner.get(IOPinComponent.PIN);
-            if (pin > highest) highest = pin;
-        }
-        return highest + 1;
-    }
-
     @Override
     public List<TerminalBoundingBox> terminals(@NotNull PlacedComponent placed)
     {
@@ -154,24 +147,24 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
         {
             var point = entry.getKey();
             var pad = entry.getValue();
-            
+
             if (pad.nodeIndex() < 0 || pad.nodeIndex() >= pinCount) continue;
-            
+
             String customLabel = getPinLabel(placed, pad.nodeIndex());
             net.minecraft.network.chat.Component name;
-            
+
             if (customLabel != null) name = net.minecraft.network.chat.Component.literal(customLabel);
             else name = pad.tooltip() != null ? pad.tooltip() : net.minecraft.network.chat.Component.literal("IO " + (pad.nodeIndex() + 1));
-            
+
             ordered[pad.nodeIndex()] = new TerminalBoundingBox(name, point.x(), 0, point.y(), point.x() + 1, 1, point.y() + 1);
         }
-        
+
         ArrayList<TerminalBoundingBox> list = new ArrayList<>(pinCount);
-        
+
         for (TerminalBoundingBox bb : ordered)
         {
             if (bb == null) throw new IllegalStateException("ChipComponent footprint is missing a pad for one of its 0.." + (pinCount - 1) + " node indices");
-            
+
             list.add(bb);
         }
         return list;
@@ -181,9 +174,9 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
     public void bake(@NotNull PlacedComponent placed, @NotNull ComponentCircuitBuilder builder, ThermalBuilder.@NotNull IEmitter thermalEmitter)
     {
         CircuitSchematic schematic = getInnerSchematic(placed);
-        
+
         if (schematic == null) return;
-        
+
         Collection<INode> internalSink = new AbstractCollection<>()
         {
             @Override public boolean add(INode node)
@@ -200,7 +193,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
                 return 0;
             }
         };
-        
+
         Collection<AbstractElectricWire> wireSink = new AbstractCollection<>()
         {
             @Override public boolean add(AbstractElectricWire wire)
@@ -217,16 +210,16 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
                 return 0;
             }
         };
-        
+
         HashMap<PlacedComponent, Function<Integer, FloatingNode>> padNodeProviderMap = new HashMap<>();
         int[] innerExternalBundleIndex = new int[]{0};
-        
+
         for (PlacedComponent innerPlaced : schematic.components())
         {
             HashSet<Integer> nodeIndexSet = new HashSet<>();
             for (var pad : innerPlaced.footprint().getPads().values()) if (pad.nodeIndex() >= 0) nodeIndexSet.add(pad.nodeIndex());
             Function<Integer, FloatingNode> provider;
-            
+
             if (innerPlaced.component instanceof IOPinComponent)
             {
                 int pin = innerPlaced.get(IOPinComponent.PIN);
@@ -248,7 +241,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
                 for (int i = 0; i < nodeIndexSet.size(); ++i) nodes.add(builder.addInternalNode());
                 provider = nodes::get;
             }
-            
+
             padNodeProviderMap.put(innerPlaced, provider);
             var innerBuilder = new ComponentCircuitBuilder(placed.getPos(), provider, internalSink, wireSink);
             innerPlaced.nodes.clear();
@@ -279,11 +272,11 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
     private static CircuitSchematic getInnerSchematic(PlacedComponent placed)
     {
         if (placed.customData instanceof CircuitSchematic cached) return cached;
-        
+
         CompoundTag tag = placed.get(SCHEMATIC);
-        
+
         if (tag == null || tag.isEmpty()) return null;
-        
+
         CircuitSchematic schematic = CircuitSchematic.fromNbt(tag);
         placed.customData = schematic;
         return schematic;
@@ -292,9 +285,9 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
     public static String getChipName(PlacedComponent placed)
     {
         CircuitSchematic schematic = getInnerSchematic(placed);
-        
+
         if (schematic == null) return "";
-        
+
         for (PlacedComponent inner : schematic.components())
         {
             if (inner.component instanceof ChipNameComponent)
@@ -309,9 +302,9 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
     public static int getChipColor(PlacedComponent placed)
     {
         CircuitSchematic schematic = getInnerSchematic(placed);
-        
+
         if (schematic == null) return 0xFFFFFFFF;
-        
+
         for (PlacedComponent inner : schematic.components())
         {
             if (inner.component instanceof ChipNameComponent)
@@ -327,9 +320,9 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
     public boolean addToGoggleTooltip(@NotNull PlacedComponent placed, @NotNull List<net.minecraft.network.chat.Component> tooltip, boolean isPlayerSneaking)
     {
         String name = getChipName(placed);
-        
+
         if (name.isEmpty()) return false;
-        
+
         tooltip.add(net.minecraft.network.chat.Component.literal(name));
         return true;
     }
@@ -338,9 +331,9 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
     public void render(CircuitBoardBlockEntity be, PlacedComponent placed, float partialTicks, PoseStack ms, MultiBufferSource bufferSource, int light, int overlay)
     {
         String name = getChipName(placed);
-        
+
         if (name.isEmpty()) return;
-        
+
         int color = getChipColor(placed);
 
         ComponentFootprint footprint = footprint(placed);

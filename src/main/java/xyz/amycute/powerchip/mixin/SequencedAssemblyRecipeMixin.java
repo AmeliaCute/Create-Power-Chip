@@ -47,8 +47,7 @@ public abstract class SequencedAssemblyRecipeMixin
         int size = -1;
         if (isFinalChip)
         {
-            int pinsUsed = ChipComponent.usedPinCount(schematicTag);
-            size = ChipComponent.smallestFittingSize(pinsUsed);
+            size = ChipComponent.designatedSize(schematicTag);
             if (size < 0) return;
 
             result = new ItemStack(ModItems.chip(size));
