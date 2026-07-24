@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "powerchip:chip"
+    "powerchip:chip_4",
+    "powerchip:chip_6",
+    "powerchip:chip",
+    "powerchip:chip_10",
+    "powerchip:chip_12"
   ]
 }

@@ -38,13 +38,28 @@ import java.util.function.Function;
 
 public class ChipComponent extends OrientableComponent implements IRenderedComponent, IComponentGoggleInformation
 {
-    public static final int MAX_IO = 8;
+    public static final int[] SIZES = new int[]{ 4, 6, 8, 10, 12, 14, 16, 20, 24 };
+    public static final int GLOBAL_MAX_IO = SIZES[SIZES.length - 1];
     public static final int MAX_CHIP_DEPTH = 5;
     public static final SchematicProperty SCHEMATIC = new SchematicProperty(PowerChips.MOD_ID, "chip_schematic");
 
-    public ChipComponent(ComponentFootprint footprint)
+    private final int pinCount;
+
+    public ChipComponent(ComponentFootprint footprint, int pinCount)
     {
         super(footprint);
+        this.pinCount = pinCount;
+    }
+
+    public int getPinCount()
+    {
+        return pinCount;
+    }
+
+    public static int smallestFittingSize(int pinsUsed)
+    {
+        for (int size : SIZES) if (size >= pinsUsed) return size;
+        return -1;
     }
 
     @Override
@@ -114,16 +129,33 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
         return getChipDepth(schematicTag) >= MAX_CHIP_DEPTH;
     }
 
+    public static int usedPinCount(CompoundTag schematicTag)
+    {
+        if (schematicTag == null || schematicTag.isEmpty()) return 0;
+        
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
+        if (schematic == null) return 0;
+        
+        int highest = -1;
+        for (PlacedComponent inner : schematic.components())
+        {
+            if (!(inner.component instanceof IOPinComponent)) continue;
+            int pin = inner.get(IOPinComponent.PIN);
+            if (pin > highest) highest = pin;
+        }
+        return highest + 1;
+    }
+
     @Override
     public List<TerminalBoundingBox> terminals(@NotNull PlacedComponent placed)
     {
-        TerminalBoundingBox[] ordered = new TerminalBoundingBox[MAX_IO];
+        TerminalBoundingBox[] ordered = new TerminalBoundingBox[pinCount];
         for (var entry : footprint(placed).getPads().entrySet())
         {
             var point = entry.getKey();
             var pad = entry.getValue();
             
-            if (pad.nodeIndex() < 0 || pad.nodeIndex() >= MAX_IO) continue;
+            if (pad.nodeIndex() < 0 || pad.nodeIndex() >= pinCount) continue;
             
             String customLabel = getPinLabel(placed, pad.nodeIndex());
             net.minecraft.network.chat.Component name;
@@ -134,11 +166,11 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
             ordered[pad.nodeIndex()] = new TerminalBoundingBox(name, point.x(), 0, point.y(), point.x() + 1, 1, point.y() + 1);
         }
         
-        ArrayList<TerminalBoundingBox> list = new ArrayList<>(MAX_IO);
+        ArrayList<TerminalBoundingBox> list = new ArrayList<>(pinCount);
         
         for (TerminalBoundingBox bb : ordered)
         {
-            if (bb == null) throw new IllegalStateException("ChipComponent footprint is missing a pad for one of its 0.." + (MAX_IO - 1) + " node indices");
+            if (bb == null) throw new IllegalStateException("ChipComponent footprint is missing a pad for one of its 0.." + (pinCount - 1) + " node indices");
             
             list.add(bb);
         }
@@ -198,7 +230,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
             if (innerPlaced.component instanceof IOPinComponent)
             {
                 int pin = innerPlaced.get(IOPinComponent.PIN);
-                provider = i -> pin < MAX_IO ? builder.terminalNode(pin) : new FloatingNode();
+                provider = i -> pin < pinCount ? builder.terminalNode(pin) : new FloatingNode();
             }
             else if (innerPlaced.component.emitExternalTerminals())
             {
@@ -206,7 +238,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
                 provider = i ->
                 {
                     int pin = baseIndex + i;
-                    return pin < MAX_IO ? builder.terminalNode(pin) : new FloatingNode();
+                    return pin < pinCount ? builder.terminalNode(pin) : new FloatingNode();
                 };
                 innerExternalBundleIndex[0] += nodeIndexSet.size();
             }
