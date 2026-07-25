@@ -4,9 +4,10 @@
   "package": "xyz.amycute.powerchip.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "AbstractContainerScreenAccessor",
     "CircuitDesignTableEditScreenMixin",
     "CircuitSchematicRenderMixin",
-    "ComponentPropertiesWidgetMixin",
+    "IOPinEditorScreenMixin",
     "SequencedAssemblyRecipeMixin"
   ],
   "injectors": {

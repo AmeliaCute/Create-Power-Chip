@@ -57,9 +57,7 @@ neoForge {
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
-    compileOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}:api"
-    runtimeOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
-    implementation("mezz.jei:jei-${jei_minecraft_version}-neoforge:${jei_version}")
+    runtimeOnly("mezz.jei:jei-${jei_minecraft_version}-neoforge:${jei_version}")
 
 
     implementation "dev.architectury:architectury-neoforge:${architectury_api_version}"

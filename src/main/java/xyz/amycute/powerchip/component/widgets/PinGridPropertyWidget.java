@@ -8,84 +8,143 @@ import org.jetbrains.annotations.NotNull;
 import org.patryk3211.powergrid.circuits.components.properties.PropertyEntry;
 import org.patryk3211.powergrid.circuits.gui.ComponentPropertiesWidget;
 import org.patryk3211.powergrid.circuits.gui.PropertyWidget;
+import xyz.amycute.powerchip.component.IOPinComponent;
 
-//TODO: remake this shit to be really dynamic cuz it's suck
-public final class PinGridPropertyWidget extends PropertyWidget<Integer, PropertyEntry<Integer>>
+import java.util.function.IntSupplier;
+
+public final class PinGridPropertyWidget extends PropertyWidget<Integer, PropertyEntry<Integer>> implements WidePropertyWidget
 {
-    private static final int COLS = 4;
-    private static final int ROWS = 2;
-    private static final int PIN_COUNT = COLS * ROWS;
+    private static final int MAX_PIN_COUNT = IOPinComponent.MAX_PINS;
 
-    private static final int BG_W = 60;
-    private static final int BG_H = 20;
-
+    private static final int MAX_COLS = 6;
     private static final int CELL_W = 13;
     private static final int CELL_H = 8;
     private static final int GAP = 1;
 
-    private static final int GRID_W = COLS * CELL_W + (COLS - 1) * GAP;
-    private static final int GRID_H = ROWS * CELL_H + (ROWS - 1) * GAP;
-    private static final int GRID_X_OFFSET = (BG_W - GRID_W) / 2;
-    private static final int GRID_Y_OFFSET = (BG_H - GRID_H) / 2;
-
-    private static final String[] LABELS = new String[PIN_COUNT];
+    private static final String[] LABELS = new String[MAX_PIN_COUNT];
     static
     {
-        for (int i = 0; i < PIN_COUNT; i++) LABELS[i] = Integer.toString(i);
+        for (int i = 0; i < MAX_PIN_COUNT; i++) LABELS[i] = Integer.toString(i);
     }
 
     private final Runnable changeMadeCallback;
-    private final int[] cachedCellX = new int[PIN_COUNT];
-    private final int[] cachedCellY = new int[PIN_COUNT];
-    private final int[] cachedTextX = new int[PIN_COUNT];
+    private final IntSupplier activePinCountSupplier;
     private final int textYOffset;
+
+    private final int contentYOffset;
+
+    private int cachedCount = -1;
+    private int cols;
+    private int rows;
+    private int gridW, gridH, bgW, bgH, gridXOffset, gridYOffset;
+    private final int[] cellX = new int[MAX_PIN_COUNT];
+    private final int[] cellY = new int[MAX_PIN_COUNT];
+    private final int[] textX = new int[MAX_PIN_COUNT];
 
     public PinGridPropertyWidget(Font textRenderer, int x, int y, PropertyEntry<Integer> property, Runnable changeMadeCallback)
     {
+        this(textRenderer, x, y, property, changeMadeCallback, null);
+    }
+
+    public PinGridPropertyWidget(Font textRenderer, int x, int y, PropertyEntry<Integer> property, Runnable changeMadeCallback, IntSupplier activePinCountSupplier)
+    {
         super(textRenderer, x, y, property);
         this.changeMadeCallback = changeMadeCallback;
-
+        this.activePinCountSupplier = activePinCountSupplier;
         this.textYOffset = (CELL_H - textRenderer.lineHeight) / 2 + 1;
-        for (int i = 0; i < PIN_COUNT; i++)
+        this.contentYOffset = 6 + textRenderer.lineHeight;
+        relayout();
+    }
+
+    private int activeCount()
+    {
+        int count = activePinCountSupplier != null ? activePinCountSupplier.getAsInt() : MAX_PIN_COUNT;
+        if (count < 1) count = 1;
+        if (count > MAX_PIN_COUNT) count = MAX_PIN_COUNT;
+        return count;
+    }
+
+    private void relayout()
+    {
+        int count = activeCount();
+        if (count == cachedCount) return;
+        cachedCount = count;
+
+        rows = Math.max(2, (count + MAX_COLS - 1) / MAX_COLS);
+        cols = Math.min(MAX_COLS, (count + rows - 1) / rows);
+        rows = (count + cols - 1) / cols;
+
+        gridW = cols * CELL_W + (cols - 1) * GAP;
+        gridH = rows * CELL_H + (rows - 1) * GAP;
+        bgW = gridW + 8;
+        bgH = rows * CELL_H + (rows - 1) * GAP + 8;
+        gridXOffset = (bgW - gridW) / 2;
+        gridYOffset = (bgH - gridH) / 2;
+
+        for (int i = 0; i < count; i++)
         {
-            this.cachedCellX[i] = GRID_X_OFFSET + (i % COLS) * (CELL_W + GAP);
-            this.cachedCellY[i] = GRID_Y_OFFSET + (i / COLS) * (CELL_H + GAP);
-            this.cachedTextX[i] = this.cachedCellX[i] + (CELL_W - textRenderer.width(LABELS[i])) / 2 + 1;
+            cellX[i] = gridXOffset + (i % cols) * (CELL_W + GAP);
+            cellY[i] = gridYOffset + (i / cols) * (CELL_H + GAP);
+            textX[i] = cellX[i] + (CELL_W - textRenderer.width(LABELS[i])) / 2 + 1;
         }
+    }
+
+    @Override
+    public int powerchip$renderedWidth()
+    {
+        relayout();
+        return bgW;
+    }
+
+    @Override
+    public int powerchip$renderedHeight()
+    {
+        relayout();
+        return contentYOffset + bgH + 1;
     }
 
     private int cellAt(double mouseX, double mouseY)
     {
-        double localX = mouseX - getX() - GRID_X_OFFSET;
-        double localY = mouseY - getY() - GRID_Y_OFFSET;
-        if (localX < 0 || localY < 0 || localX >= GRID_W || localY >= GRID_H) return -1;
+        relayout();
+        double localX = mouseX - getX() - gridXOffset;
+        double localY = mouseY - getY() - contentYOffset - gridYOffset;
+        if (localX < 0 || localY < 0 || localX >= gridW || localY >= gridH) return -1;
         if (localX % (CELL_W + GAP) >= CELL_W || localY % (CELL_H + GAP) >= CELL_H) return -1;
 
-        return ((int) (localY / (CELL_H + GAP))) * COLS + (int) (localX / (CELL_W + GAP));
+        int cell = ((int) (localY / (CELL_H + GAP))) * cols + (int) (localX / (CELL_W + GAP));
+        return cell < cachedCount ? cell : -1;
+    }
+
+    public int getBackgroundWidth()
+    {
+        relayout();
+        return bgW;
     }
 
     @Override
     protected void doRender(@NotNull GuiGraphics ctx, int mouseX, int mouseY, float partialTicks)
     {
+        relayout();
+
         int x = getX();
-        int y = getY();
-        ctx.blit(ComponentPropertiesWidget.PROPERTIES, x, y, 0, 99, BG_W, BG_H);
+        int y = getY() + contentYOffset;
+        ctx.blit(ComponentPropertiesWidget.PROPERTIES, x, y, 0, 99, bgW, bgH);
 
         int selected = property.get();
         int hovered = cellAt(mouseX, mouseY);
 
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        for (int i = 0; i < PIN_COUNT; i++)
+        for (int i = 0; i < cachedCount; i++)
         {
-            int cx = x + cachedCellX[i];
-            int cy = y + cachedCellY[i];
+            int cx = x + cellX[i];
+            int cy = y + cellY[i];
 
             AllGuiTextures tex = i == selected ? AllGuiTextures.BUTTON_HOVER : AllGuiTextures.BUTTON;
             ctx.blit(tex.location, cx, cy, tex.getStartX(), tex.getStartY(), CELL_W, CELL_H);
             if (i == hovered && i != selected) ctx.fill(cx, cy, cx + CELL_W, cy + CELL_H, 0x40FFFFFF);
 
-            ctx.drawString(textRenderer, LABELS[i], x + cachedTextX[i], cy + textYOffset, i == selected ? 0xFFFFFFFF : 0xFF404040, false);
+            ctx.drawString(textRenderer, LABELS[i], x + textX[i], cy + textYOffset, i == selected ? 0xFFFFFFFF : 0xFF404040, false);
         }
     }
 

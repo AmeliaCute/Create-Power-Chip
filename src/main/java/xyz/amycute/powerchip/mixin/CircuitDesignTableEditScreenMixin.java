@@ -8,17 +8,44 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import xyz.amycute.powerchip.component.ChipComponent;
+import xyz.amycute.powerchip.component.ChipSizeSync;
+import xyz.amycute.powerchip.component.IOPinComponent;
 import org.patryk3211.powergrid.circuits.editor.CircuitDesignTableEditScreen;
+import org.patryk3211.powergrid.circuits.schematic.CircuitSchematic;
 import org.patryk3211.powergrid.circuits.schematic.ComponentFootprint;
 import org.patryk3211.powergrid.circuits.schematic.PlacedComponent;
 import org.patryk3211.powergrid.circuits.schematic.Point;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.function.Supplier;
 
 @Mixin(CircuitDesignTableEditScreen.class)
 public abstract class CircuitDesignTableEditScreenMixin
 {
+    @Shadow
+    private CircuitSchematic schematic;
+
+    private Supplier<java.util.List<PlacedComponent>> powerchip$syncSource;
+
+    @Inject(method = "<init>", at = @At("RETURN"))
+    private void powerchip$registerSyncSource(CallbackInfo ci)
+    {
+        powerchip$syncSource = schematic::components;
+        ChipSizeSync.setSource(powerchip$syncSource);
+    }
+
+    @Inject(method = "placeComponent(II)V", at = @At("TAIL"))
+    private void powerchip$inheritSharedPinCount(int x, int y, CallbackInfo ci)
+    {
+        PlacedComponent placed = schematic.getComponent(x, y);
+        if (placed != null && placed.component instanceof IOPinComponent) placed.set(IOPinComponent.PIN_COUNT, ChipSizeSync.currentSharedSize());
+    }
+
     @ModifyVariable(method = "toolSelect(Lnet/minecraft/world/inventory/Slot;)V", at = @At(value = "STORE"), ordinal = 0)
     private PlacedComponent powerchip$transferChipSchematic(PlacedComponent placed, Slot slot)
     {
