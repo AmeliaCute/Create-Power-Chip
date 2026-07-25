@@ -166,19 +166,26 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
             socketY1 = Math.min(chipAreaY + chipAreaH - CHIP_AREA_PAD + SOCKET_PAD, chipAreaY + chipAreaH - CONTAINER_PAD);
         }
 
-        if (!chipLayoutDone)
-        {
-            chipLayoutDone = true;
-            int chipAreaLeft = leftX + PIN_BTN_W + CHIP_MARGIN;
-            int chipAreaRight = rightX - CHIP_MARGIN;
+        int centerX = getX() + PANEL_W / 2;
+        int centerY = socketY0 + (socketY1 - socketY0) / 2;
 
-            int shrinkX = CHIP_PAD * 2;
-            chipW = Math.max(24, (chipAreaRight - chipAreaLeft) - 2 * (CHIP_PAD + shrinkX));
-            chipX = getX() + (PANEL_W - chipW) / 2;
-        }
+        int chipAreaLeft = leftX + PIN_BTN_W + CHIP_MARGIN;
+        int chipAreaRight = rightX - CHIP_MARGIN;
+        int maxChipW = (chipAreaRight - chipAreaLeft) - 2 * CHIP_PAD;
+
+        int[] sizes = ChipComponent.SIZES;
+        int minPins = sizes[0];
+        int maxPins = sizes[sizes.length - 1];
+        float widthT = maxPins <= minPins ? 1f : (float) (count - minPins) / (maxPins - minPins);
+
+        int minChipW = 50;
+        chipW = Math.round(minChipW + widthT * (maxChipW - minChipW));
+        chipW = Math.max(24, Math.min(chipW, maxChipW));
 
         chipH = Math.max(24, totalSideH);
-        chipY = socketY0 + (socketY1 - socketY0 - chipH) / 2;
+
+        chipX = centerX - chipW / 2;
+        chipY = centerY - chipH / 2;
     }
 
     @Override
@@ -190,14 +197,8 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         {
             long window = Minecraft.getInstance().getWindow().getWindow();
             boolean stillDown = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
-            if (stillDown)
-            {
-                setSizeFromMouseX(mouseX);
-            }
-            else
-            {
-                draggingSlider = false;
-            }
+            if (stillDown) setSizeFromMouseX(mouseX);
+            else draggingSlider = false;
         }
 
         relayout();
@@ -212,7 +213,7 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         labelBox.render(ctx, mouseX, mouseY, partialTicks);
         if (!editingLabel && labelBox.getValue().isEmpty())
         {
-            String hint = "Pin " + selected;
+            String hint = Component.translatable(PowerChips.MOD_ID+".component.gui.pin_hint", selected).getString();
             ctx.drawString(textRenderer, hint, x + 7, y + 5, 0xFF8A8A8A, false);
         }
 
@@ -228,7 +229,7 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         int notchSize = 6;
         ctx.fill(chipX, chipY, chipX + notchSize, chipY + notchSize, 0xFF585858);
 
-        String sizeLabel = pinCount + " pins";
+        String sizeLabel = Component.translatable(PowerChips.MOD_ID+".component.gui.pin_count_label", pinCount).getString();
         int labelWidth = textRenderer.width(sizeLabel);
         ctx.drawString(textRenderer, sizeLabel, chipX + (chipW - labelWidth) / 2, chipY + chipH / 2 - 4, 0xFFB0B0B0, false);
 
@@ -295,7 +296,7 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         AllGuiTextures knobTex = (hovering || draggingSlider) ? AllGuiTextures.BUTTON_HOVER : AllGuiTextures.BUTTON;
         ctx.blit(knobTex.location, knobX, knobY, knobTex.getStartX(), knobTex.getStartY(), knobW, SLIDER_KNOB_H);
 
-        String sizeText = "Size: " + currentSize;
+        String sizeText = Component.translatable(PowerChips.MOD_ID+".component.gui.size_label", currentSize).getString();
         int tw = textRenderer.width(sizeText);
         ctx.drawString(textRenderer, sizeText, sliderTrackX + (sliderTrackW - tw) / 2, textY, 0xFF404040, false);
     }
