@@ -42,13 +42,28 @@ public abstract class SequencedAssemblyRecipeMixin
         if (!isIncomplete && !isFinalChip) return;
 
         CompoundTag schematicTag = inputTag.getCompound(ModNbt.NBT_SCHEMATIC).copy();
-        if (isFinalChip && ChipComponent.exceedsMaxDepth(schematicTag)) return;
+
+        if (isFinalChip && ChipComponent.exceedsMaxDepth(schematicTag))
+        {
+            forceIncomplete(schematicTag, cir);
+            return;
+        }
 
         int size = -1;
         if (isFinalChip)
         {
             size = ChipComponent.designatedSize(schematicTag);
-            if (size < 0) return;
+            if (size < 0)
+            {
+                forceIncomplete(schematicTag, cir);
+                return;
+            }
+
+            if (ChipComponent.exceedsMaxPower(schematicTag, size))
+            {
+                forceIncomplete(schematicTag, cir);
+                return;
+            }
 
             result = new ItemStack(ModItems.chip(size));
         }
@@ -67,6 +82,17 @@ public abstract class SequencedAssemblyRecipeMixin
         }
 
         cir.setReturnValue(result);
+    }
+
+    private static void forceIncomplete(CompoundTag schematicTag, CallbackInfoReturnable<ItemStack> cir)
+    {
+        ItemStack incomplete = new ItemStack(ModItems.INCOMPLETE_CHIP.get());
+        CompoundTag outTag = incomplete.has(DataComponents.CUSTOM_DATA) ? incomplete.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
+
+        outTag.put(ModNbt.NBT_SCHEMATIC, schematicTag.copy());
+        incomplete.set(DataComponents.CUSTOM_DATA, CustomData.of(outTag));
+
+        cir.setReturnValue(incomplete);
     }
 
     private static String findChipName(CompoundTag schematicTag)

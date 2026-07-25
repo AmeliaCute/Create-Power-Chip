@@ -17,6 +17,10 @@
   "powerchip.component.property.pin": "Pin number",
   "powerchip.component.property.pin_label": "Label",
 
+  "powerchip.component.gui.pin_hint": "Pin %s",
+  "powerchip.component.gui.pin_count_label": "%s pins",
+  "powerchip.component.gui.size_label": "Size: %s",
+
   "component.powerchip.io_pin.0": "IO",
 
   "component.powerchip.chip.0": "Pin 0",
