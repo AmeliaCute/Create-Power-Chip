@@ -1,6 +1,5 @@
 package xyz.amycute.powerchip.component.widgets;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import net.createmod.catnip.gui.widget.AbstractSimiWidget;
 import net.minecraft.client.Minecraft;
@@ -51,14 +50,12 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
     private final boolean[] pinOnLeft = new boolean[IOPinComponent.MAX_PINS];
     private int socketX0, socketY0, socketX1, socketY1;
     private boolean socketLayoutDone = false;
-    private boolean chipLayoutDone = false;
     private int cachedLayoutPinCount = -1;
 
     private static final int SLIDER_KNOB_W = 12;
     private static final int SLIDER_KNOB_H = 10;
     private static final float SLIDER_SMOOTHING = 0.35f;
 
-    private int sliderY;
     private int sliderBarY0, sliderBarY1;
     private int sliderTrackX, sliderTrackW;
     private boolean draggingSlider = false;
@@ -104,11 +101,6 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
 
             visualT = targetT();
         }
-    }
-
-    public boolean isShown()
-    {
-        return placed != null;
     }
 
     private void onLabelEdited(String value)
@@ -178,9 +170,9 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         int maxPins = sizes[sizes.length - 1];
         float widthT = maxPins <= minPins ? 1f : (float) (count - minPins) / (maxPins - minPins);
 
-        int minChipW = 50;
+        int minChipW = 55;
         chipW = Math.round(minChipW + widthT * (maxChipW - minChipW));
-        chipW = Math.max(24, Math.min(chipW, maxChipW));
+        chipW = Math.clamp(chipW, 24, maxChipW);
 
         chipH = Math.max(24, totalSideH);
 
@@ -326,9 +318,8 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
     {
         int[] sizes = ChipComponent.SIZES;
         int count = sizes.length;
-        int knobW = SLIDER_KNOB_W;
-        float t = (float) (mouseX - sliderTrackX) / Math.max(1, (sliderTrackW - knobW));
-        t = Math.max(0f, Math.min(1f, t));
+        float t = (float) (mouseX - sliderTrackX) / Math.max(1, (sliderTrackW - SLIDER_KNOB_W));
+        t = Math.clamp(t, 0f, 1f);
 
         if (draggingSlider)
         {
@@ -336,7 +327,7 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         }
 
         int index = Math.round(t * (count - 1));
-        index = Math.max(0, Math.min(count - 1, index));
+        index = Math.clamp(index, 0, count - 1);
         int newSize = sizes[index];
 
         if (placed.get(IOPinComponent.PIN_COUNT) != newSize)
@@ -376,7 +367,7 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         }
 
         if (mouseY >= sliderBarY0 - SLIDER_HITBOX_PAD && mouseY <= sliderBarY1 + SLIDER_HITBOX_PAD
-                && mouseX >= sliderTrackX - SLIDER_KNOB_W / 2 - SLIDER_HITBOX_PAD && mouseX <= sliderTrackX + sliderTrackW + SLIDER_KNOB_W / 2 + SLIDER_HITBOX_PAD)
+                && mouseX >= sliderTrackX - (double) SLIDER_KNOB_W / 2 - SLIDER_HITBOX_PAD && mouseX <= sliderTrackX + sliderTrackW + (double) SLIDER_KNOB_W / 2 + SLIDER_HITBOX_PAD)
         {
             draggingSlider = true;
             setSizeFromMouseX(mouseX);
@@ -384,11 +375,6 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         }
 
         return false;
-    }
-
-    public boolean powerchip$isDraggingSlider()
-    {
-        return draggingSlider;
     }
 
     @Override
