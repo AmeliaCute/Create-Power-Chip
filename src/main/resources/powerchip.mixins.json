@@ -3,6 +3,10 @@
   "minVersion": "0.8",
   "package": "xyz.amycute.powerchip.mixin",
   "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ChipComponentNestedTerminalMixin",
+    "ThermalBuilderAccessor"
+  ],
   "client": [
     "AbstractContainerScreenAccessor",
     "CircuitDesignTableEditScreenMixin",
