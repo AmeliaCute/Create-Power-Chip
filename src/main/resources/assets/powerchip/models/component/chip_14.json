@@ -2,10 +2,9 @@
 	"format_version": "1.21.6",
 	"credit": "Made while Gaying",
 	"render_type": "minecraft:cutout",
-	"texture_size": [16, 50],
+	"texture_size": [16, 64],
 	"textures": {
-		"0": "powerchip:block/component/chip",
-		"particle": "485c66c1/chip"
+		"0": "powerchip:block/component/chip"
 	},
 	"elements": [
 		{
@@ -13,12 +12,12 @@
 			"to": [7, 1.5, 3],
 			"rotation": {"angle": 0, "axis": "y", "origin": [0.5, 0, 0.5]},
 			"faces": {
-				"north": {"uv": [4, 0, 8, 1], "texture": "#0"},
-				"east": {"uv": [0, 0, 2, 1], "texture": "#0"},
-				"south": {"uv": [4, 0, 8, 1], "texture": "#0"},
-				"west": {"uv": [0, 0, 2, 1], "texture": "#0"},
-				"up": {"uv": [4, 1, 0, 0], "texture": "#0"},
-				"down": {"uv": [12, 3, 8, 5], "texture": "#0"}
+				"north": {"uv": [11, 0, 13, 1.75], "rotation": 90, "texture": "#0"},
+				"east": {"uv": [8, 0, 11, 0.5], "texture": "#0"},
+				"south": {"uv": [8, 0.5, 10, 2.25], "rotation": 90, "texture": "#0"},
+				"west": {"uv": [13, 0, 16, 0.5], "texture": "#0"},
+				"up": {"uv": [13, 0.5, 16, 2.25], "rotation": 270, "texture": "#0"},
+				"down": {"uv": [11, 4, 7, 6], "texture": "#0"}
 			}
 		},
 		{
@@ -26,11 +25,11 @@
 			"to": [7, 0.7, 3.25],
 			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, -1]},
 			"faces": {
-				"north": {"uv": [2, 2, 3, 16], "rotation": 270, "texture": "#0"},
-				"east": {"uv": [8, 3, 11, 4], "texture": "#0"},
-				"south": {"uv": [2, 16, 3, 2], "rotation": 270, "texture": "#0"},
-				"west": {"uv": [8, 3, 11, 4], "texture": "#0"},
-				"up": {"uv": [3, 16, 2, 2], "rotation": 270, "texture": "#0"},
+				"north": {"uv": [2, 0.75, 3, 6.25], "rotation": 270, "texture": "#0"},
+				"east": {"uv": [8, 6.25, 11, 7.25], "texture": "#0"},
+				"south": {"uv": [2, 0.75, 3, 6.25], "rotation": 270, "texture": "#0"},
+				"west": {"uv": [8, 6, 11, 7], "texture": "#0"},
+				"up": {"uv": [2, 0.75, 3, 6.25], "rotation": 270, "texture": "#0"},
 				"down": {"uv": [16, 0, 8, 5], "texture": "#0"}
 			}
 		}

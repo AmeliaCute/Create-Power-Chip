@@ -17,6 +17,10 @@
   "powerchip.component.property.pin": "Numéro de broche",
   "powerchip.component.property.pin_label": "Étiquette",
 
+  "powerchip.component.gui.pin_hint": "Broche %s",
+  "powerchip.component.gui.pin_count_label": "%s broches",
+  "powerchip.component.gui.size_label": "Taille : %s",
+
   "component.powerchip.io_pin.0": "E/S",
 
   "component.powerchip.chip.0": "Broche 0",
