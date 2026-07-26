@@ -2,27 +2,32 @@ package xyz.amycute.powerchip.component;
 
 import com.google.common.collect.ImmutableCollection;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import org.jetbrains.annotations.NotNull;
 import org.patryk3211.powergrid.circuits.circuitboard.CircuitBoardBlockEntity;
+import org.patryk3211.powergrid.circuits.circuitboard.ComponentCircuitBuilder;
 import org.patryk3211.powergrid.circuits.components.IComponentGoggleInformation;
 import org.patryk3211.powergrid.circuits.components.IRenderedComponent;
+import org.patryk3211.powergrid.circuits.components.OrientableComponent;
 import org.patryk3211.powergrid.circuits.components.properties.ComponentProperty;
-import xyz.amycute.powerchip.PowerChips;
-import xyz.amycute.powerchip.component.properties.SchematicProperty;
-import org.patryk3211.powergrid.circuits.circuitboard.ComponentCircuitBuilder;
-import org.patryk3211.powergrid.circuits.components.Component;
+import org.patryk3211.powergrid.circuits.components.properties.Orientation;
 import org.patryk3211.powergrid.circuits.schematic.CircuitSchematic;
 import org.patryk3211.powergrid.circuits.schematic.ComponentFootprint;
 import org.patryk3211.powergrid.circuits.schematic.PlacedComponent;
 import org.patryk3211.powergrid.circuits.thermal.ThermalBuilder;
+import org.patryk3211.powergrid.electricity.base.TerminalBoundingBox;
+import org.patryk3211.powergrid.electricity.base.ThermalBehaviour;
 import org.patryk3211.powergrid.electricity.sim.AbstractElectricWire;
 import org.patryk3211.powergrid.electricity.sim.ElectricWire;
 import org.patryk3211.powergrid.electricity.sim.node.FloatingNode;
 import org.patryk3211.powergrid.electricity.sim.node.INode;
-import org.patryk3211.powergrid.electricity.base.TerminalBoundingBox;
-import org.jetbrains.annotations.NotNull;
+import xyz.amycute.powerchip.PowerChips;
+import xyz.amycute.powerchip.component.properties.SchematicProperty;
 import xyz.amycute.powerchip.component.renderings.ChipLabelRenderer;
+import xyz.amycute.powerchip.mixin.ThermalBuilderAccessor;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -31,17 +36,45 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 
-public class ChipComponent extends Component implements IRenderedComponent, IComponentGoggleInformation
+
+public class ChipComponent extends OrientableComponent implements IRenderedComponent, IComponentGoggleInformation
 {
-    public static final int MAX_IO = 8;
+    public static final int[] SIZES = new int[]{ 4, 6, 8, 10, 12, 14, 16, 20, 24 };
+    public static final int GLOBAL_MAX_IO = SIZES[SIZES.length - 1];
     public static final int MAX_CHIP_DEPTH = 5;
+    public static final float MAX_POWER_PER_PIN = 250f;
     public static final SchematicProperty SCHEMATIC = new SchematicProperty(PowerChips.MOD_ID, "chip_schematic");
 
-    public ChipComponent(ComponentFootprint footprint)
+    private final int pinCount;
+
+    public ChipComponent(ComponentFootprint footprint, int pinCount)
     {
         super(footprint);
+        this.pinCount = pinCount;
+    }
+
+    public int getPinCount()
+    {
+        return pinCount;
+    }
+
+    public static int designatedSize(CompoundTag schematicTag)
+    {
+        if (schematicTag == null || schematicTag.isEmpty()) return -1;
+
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
+        if (schematic == null) return -1;
+
+        for (PlacedComponent inner : schematic.components())
+        {
+            if (!(inner.component instanceof IOPinComponent)) continue;
+            if (!inner.has(IOPinComponent.PIN_COUNT)) continue;
+            return inner.get(IOPinComponent.PIN_COUNT);
+        }
+        return -1;
     }
 
     @Override
@@ -60,6 +93,7 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
     public static String getPinLabel(PlacedComponent placed, int pin)
     {
         CircuitSchematic schematic = getInnerSchematic(placed);
+
         if (schematic == null) return null;
 
         for (PlacedComponent inner : schematic.components())
@@ -68,6 +102,7 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
             if (inner.get(IOPinComponent.PIN) != pin) continue;
 
             String label = inner.getString(IOPinComponent.PIN_LABEL);
+
             if (label != null && !label.isEmpty()) return label;
         }
         return null;
@@ -84,6 +119,7 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
         if (schematicTag == null || schematicTag.isEmpty()) return currentDepth;
 
         CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
+
         if (schematic == null) return currentDepth;
 
         int maxDepth = currentDepth;
@@ -92,9 +128,11 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
             if (!(inner.component instanceof ChipComponent)) continue;
 
             CompoundTag innerSchematic = inner.get(SCHEMATIC);
+
             if (innerSchematic == null || innerSchematic.isEmpty()) continue;
 
             int depth = getChipDepth(innerSchematic, currentDepth + 1);
+
             if (depth > maxDepth) maxDepth = depth;
             if (maxDepth >= MAX_CHIP_DEPTH) break;
         }
@@ -106,32 +144,74 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
         return getChipDepth(schematicTag) >= MAX_CHIP_DEPTH;
     }
 
+    public static float totalDissipatedPower(CompoundTag schematicTag)
+    {
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
+        if (schematic == null) return 0f;
+
+        List<ThermalBuilder> collected = new ArrayList<>();
+        ThermalBuilder.IEmitter countingEmitter = () ->
+        {
+            ThermalBuilder builder = new ThermalBuilder(UUID.randomUUID(), 0);
+            collected.add(builder);
+            return builder;
+        };
+
+        for (PlacedComponent placed : schematic.components())
+        {
+            ComponentCircuitBuilder dummyBuilder = new ComponentCircuitBuilder(BlockPos.ZERO, i -> new FloatingNode(), new ArrayList<>(), new ArrayList<>());
+            try
+            {
+                placed.component.bake(placed, dummyBuilder, countingEmitter);
+            }
+            catch (Exception ignored)
+            {}
+        }
+
+        float total = 0f;
+        for (ThermalBuilder builder : collected)
+        {
+            ThermalBuilderAccessor accessor = (ThermalBuilderAccessor) (Object) builder;
+            float dissipationFactor = accessor.powerchip$getDissipationFactor();
+            float overheatTemperature = accessor.powerchip$getOverheatTemperature();
+            total += dissipationFactor * (overheatTemperature - ThermalBehaviour.BASE_TEMPERATURE);
+        }
+        return total;
+    }
+
+    public static boolean exceedsMaxPower(CompoundTag schematicTag, int pinCount)
+    {
+        return totalDissipatedPower(schematicTag) > MAX_POWER_PER_PIN * pinCount;
+    }
+
     @Override
     public List<TerminalBoundingBox> terminals(@NotNull PlacedComponent placed)
     {
-        TerminalBoundingBox[] ordered = new TerminalBoundingBox[MAX_IO];
-
+        TerminalBoundingBox[] ordered = new TerminalBoundingBox[pinCount];
         for (var entry : footprint(placed).getPads().entrySet())
         {
             var point = entry.getKey();
             var pad = entry.getValue();
-            if (pad.nodeIndex() < 0 || pad.nodeIndex() >= MAX_IO) continue;
+
+            if (pad.nodeIndex() < 0 || pad.nodeIndex() >= pinCount) continue;
 
             String customLabel = getPinLabel(placed, pad.nodeIndex());
             net.minecraft.network.chat.Component name;
+
             if (customLabel != null) name = net.minecraft.network.chat.Component.literal(customLabel);
             else name = pad.tooltip() != null ? pad.tooltip() : net.minecraft.network.chat.Component.literal("IO " + (pad.nodeIndex() + 1));
 
             ordered[pad.nodeIndex()] = new TerminalBoundingBox(name, point.x(), 0, point.y(), point.x() + 1, 1, point.y() + 1);
         }
-        ArrayList<TerminalBoundingBox> list = new ArrayList<>(MAX_IO);
+
+        ArrayList<TerminalBoundingBox> list = new ArrayList<>(pinCount);
 
         for (TerminalBoundingBox bb : ordered)
         {
-            if (bb == null) throw new IllegalStateException("ChipComponent footprint is missing a pad for one of its 0.." + (MAX_IO - 1) + " node indices");
+            if (bb == null) throw new IllegalStateException("ChipComponent footprint is missing a pad for one of its 0.." + (pinCount - 1) + " node indices");
+
             list.add(bb);
         }
-
         return list;
     }
 
@@ -139,6 +219,7 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
     public void bake(@NotNull PlacedComponent placed, @NotNull ComponentCircuitBuilder builder, ThermalBuilder.@NotNull IEmitter thermalEmitter)
     {
         CircuitSchematic schematic = getInnerSchematic(placed);
+
         if (schematic == null) return;
 
         Collection<INode> internalSink = new AbstractCollection<>()
@@ -148,12 +229,10 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
                 builder.add(node);
                 return true;
             }
-
             @Override public @NotNull Iterator<INode> iterator()
             {
                 throw new UnsupportedOperationException();
             }
-
             @Override public int size()
             {
                 return 0;
@@ -167,12 +246,10 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
                 builder.add(wire);
                 return true;
             }
-
             @Override public @NotNull Iterator<AbstractElectricWire> iterator()
             {
                 throw new UnsupportedOperationException();
             }
-
             @Override public int size()
             {
                 return 0;
@@ -186,12 +263,12 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
         {
             HashSet<Integer> nodeIndexSet = new HashSet<>();
             for (var pad : innerPlaced.footprint().getPads().values()) if (pad.nodeIndex() >= 0) nodeIndexSet.add(pad.nodeIndex());
-
             Function<Integer, FloatingNode> provider;
+
             if (innerPlaced.component instanceof IOPinComponent)
             {
                 int pin = innerPlaced.get(IOPinComponent.PIN);
-                provider = i -> pin < MAX_IO ? builder.terminalNode(pin) : new FloatingNode();
+                provider = i -> pin < pinCount ? builder.terminalNode(pin) : new FloatingNode();
             }
             else if (innerPlaced.component.emitExternalTerminals())
             {
@@ -199,7 +276,7 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
                 provider = i ->
                 {
                     int pin = baseIndex + i;
-                    return pin < MAX_IO ? builder.terminalNode(pin) : new FloatingNode();
+                    return pin < pinCount ? builder.terminalNode(pin) : new FloatingNode();
                 };
                 innerExternalBundleIndex[0] += nodeIndexSet.size();
             }
@@ -209,15 +286,14 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
                 for (int i = 0; i < nodeIndexSet.size(); ++i) nodes.add(builder.addInternalNode());
                 provider = nodes::get;
             }
-            padNodeProviderMap.put(innerPlaced, provider);
 
+            padNodeProviderMap.put(innerPlaced, provider);
             var innerBuilder = new ComponentCircuitBuilder(placed.getPos(), provider, internalSink, wireSink);
             innerPlaced.nodes.clear();
             innerPlaced.wires.clear();
             innerPlaced.destroyed = false;
             innerPlaced.component.bake(innerPlaced, innerBuilder, thermalEmitter);
         }
-
         Function<CircuitSchematic.Node, FloatingNode> resolve = node -> padNodeProviderMap.get(node.placed()).apply(node.pad());
         for (Collection<CircuitSchematic.Node> bundle : schematic.findNodeBundles())
         {
@@ -241,7 +317,9 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
     private static CircuitSchematic getInnerSchematic(PlacedComponent placed)
     {
         if (placed.customData instanceof CircuitSchematic cached) return cached;
+
         CompoundTag tag = placed.get(SCHEMATIC);
+
         if (tag == null || tag.isEmpty()) return null;
 
         CircuitSchematic schematic = CircuitSchematic.fromNbt(tag);
@@ -252,7 +330,8 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
     public static String getChipName(PlacedComponent placed)
     {
         CircuitSchematic schematic = getInnerSchematic(placed);
-        if (schematic == null) return ""; // Should maybe throw lmao
+
+        if (schematic == null) return "";
 
         for (PlacedComponent inner : schematic.components())
         {
@@ -268,6 +347,7 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
     public static int getChipColor(PlacedComponent placed)
     {
         CircuitSchematic schematic = getInnerSchematic(placed);
+
         if (schematic == null) return 0xFFFFFFFF;
 
         for (PlacedComponent inner : schematic.components())
@@ -285,6 +365,7 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
     public boolean addToGoggleTooltip(@NotNull PlacedComponent placed, @NotNull List<net.minecraft.network.chat.Component> tooltip, boolean isPlayerSneaking)
     {
         String name = getChipName(placed);
+
         if (name.isEmpty()) return false;
 
         tooltip.add(net.minecraft.network.chat.Component.literal(name));
@@ -295,10 +376,38 @@ public class ChipComponent extends Component implements IRenderedComponent, ICom
     public void render(CircuitBoardBlockEntity be, PlacedComponent placed, float partialTicks, PoseStack ms, MultiBufferSource bufferSource, int light, int overlay)
     {
         String name = getChipName(placed);
+
         if (name.isEmpty()) return;
 
         int color = getChipColor(placed);
+
         ComponentFootprint footprint = footprint(placed);
-        ChipLabelRenderer.render(ms, bufferSource, name, color, footprint.getWidth() / 16f / 2f, footprint.getHeight() / 16f / 2f, light, overlay);
+        float centerX = footprint.getWidth() / 16f / 2f;
+        float centerZ = footprint.getHeight() / 16f / 2f;
+
+        ms.pushPose();
+
+        ms.translate(centerX, 0, centerZ);
+
+        Orientation orientation = placed.get(Orientation.PROPERTY);
+        switch (orientation)
+        {
+            case DOWN -> {
+                ms.mulPose(Axis.YP.rotationDegrees(90));
+                ms.mulPose(Axis.YP.rotationDegrees(180));
+            }
+            case LEFT -> ms.mulPose(Axis.YP.rotationDegrees(180));
+            case UP -> {
+                ms.mulPose(Axis.YP.rotationDegrees(270));
+                ms.mulPose(Axis.YP.rotationDegrees(180));
+            }
+            case RIGHT -> {
+            }
+        }
+
+        ms.translate(-centerX, 0, -centerZ);
+
+        ChipLabelRenderer.render(ms, bufferSource, name, color, centerX, centerZ, light, overlay);
+        ms.popPose();
     }
 }

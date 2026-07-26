@@ -1,6 +1,7 @@
 package xyz.amycute.powerchip.mixin;
 
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -8,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemLore;
 import org.patryk3211.powergrid.circuits.schematic.CircuitSchematic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,6 +19,8 @@ import xyz.amycute.powerchip.component.ChipComponent;
 import xyz.amycute.powerchip.component.ChipNameComponent;
 import xyz.amycute.powerchip.registry.ModItems;
 import xyz.amycute.powerchip.registry.ModNbt;
+
+import java.util.List;
 
 @Mixin(SequencedAssemblyRecipe.class)
 public abstract class SequencedAssemblyRecipeMixin
@@ -33,11 +37,36 @@ public abstract class SequencedAssemblyRecipeMixin
         if (result.isEmpty()) return;
 
         boolean isIncomplete = result.is(ModItems.INCOMPLETE_CHIP.get());
-        boolean isFinalChip = result.is(ModItems.CHIP.get());
+        ItemStack finalResult = result;
+        boolean isFinalChip = ModItems.CHIPS.values().stream().anyMatch(holder -> finalResult.is(holder.get()));
         if (!isIncomplete && !isFinalChip) return;
 
         CompoundTag schematicTag = inputTag.getCompound(ModNbt.NBT_SCHEMATIC).copy();
-        if (isFinalChip && ChipComponent.exceedsMaxDepth(schematicTag)) return;
+
+        if (isFinalChip && ChipComponent.exceedsMaxDepth(schematicTag))
+        {
+            forceIncomplete(schematicTag, cir);
+            return;
+        }
+
+        int size = -1;
+        if (isFinalChip)
+        {
+            size = ChipComponent.designatedSize(schematicTag);
+            if (size < 0)
+            {
+                forceIncomplete(schematicTag, cir);
+                return;
+            }
+
+            if (ChipComponent.exceedsMaxPower(schematicTag, size))
+            {
+                forceIncomplete(schematicTag, cir);
+                return;
+            }
+
+            result = new ItemStack(ModItems.chip(size));
+        }
 
         CompoundTag outTag = result.has(DataComponents.CUSTOM_DATA) ? result.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
         outTag.put(ModNbt.NBT_SCHEMATIC, schematicTag.copy());
@@ -46,9 +75,24 @@ public abstract class SequencedAssemblyRecipeMixin
         {
             String chipName = findChipName(schematicTag);
             result.set(DataComponents.CUSTOM_NAME, Component.literal(chipName != null ? chipName : "CHIP"));
+
+            List<Component> loreLines = new java.util.ArrayList<>();
+            loreLines.add(Component.literal(size + " Pins").withStyle(ChatFormatting.DARK_GRAY));
+            result.set(DataComponents.LORE, new ItemLore(loreLines));
         }
 
         cir.setReturnValue(result);
+    }
+
+    private static void forceIncomplete(CompoundTag schematicTag, CallbackInfoReturnable<ItemStack> cir)
+    {
+        ItemStack incomplete = new ItemStack(ModItems.INCOMPLETE_CHIP.get());
+        CompoundTag outTag = incomplete.has(DataComponents.CUSTOM_DATA) ? incomplete.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
+
+        outTag.put(ModNbt.NBT_SCHEMATIC, schematicTag.copy());
+        incomplete.set(DataComponents.CUSTOM_DATA, CustomData.of(outTag));
+
+        cir.setReturnValue(incomplete);
     }
 
     private static String findChipName(CompoundTag schematicTag)

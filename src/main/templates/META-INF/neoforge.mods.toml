@@ -1,11 +1,11 @@
 modLoader = "javafml"
 loaderVersion = "[1,)"
-license = "MIT"
+license = "${mod_license}"
 
 [[mods]]
-modId = "powerchip"
-version = "1.0.2"
-displayName = "Create: Power Chip"
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
 logoFile = "icon.png"
 description = '''
 Addon for Create: Power Grid adding nested circuit board chip components.
@@ -31,7 +31,7 @@ side = "BOTH"
 [[dependencies.powerchip]]
 modId = "powergrid"
 type = "required"
-versionRange = "[0.5.5,)"
+versionRange = "[${powergrid_version},)"
 ordering = "AFTER"
 side = "BOTH"
 

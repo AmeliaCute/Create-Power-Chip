@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "powerchip:item/incomplete_chip"
+    "layer0": "powerchip:item/chip_10"
   }
 }
