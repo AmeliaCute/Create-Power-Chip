@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -14,7 +15,7 @@ import xyz.amycute.powerchip.PowerChips;
 import java.util.Set;
 import java.util.UUID;
 
-@EventBusSubscriber(modid = PowerChips.MOD_ID)
+@EventBusSubscriber(modid = PowerChips.MOD_ID, value = Dist.CLIENT)
 public final class EasterEggNameFormatter
 {
     private static final Set<UUID> GOONING_UUIDS = Set.of(
