@@ -27,9 +27,6 @@ public final class EasterEggNameFormatter
     @SubscribeEvent
     public static void onNameFormat(PlayerEvent.NameFormat event)
     {
-        LocalPlayer viewer = Minecraft.getInstance().player;
-        if (viewer == null || !GOONING_UUIDS.contains(viewer.getUUID())) return;
-
         UUID uuid = event.getEntity().getUUID();
         if (!GOONING_UUIDS.contains(uuid)) return;
 
