@@ -8,15 +8,15 @@
   "item.powerchip.chip_16": "16-контактный чип",
   "item.powerchip.chip_20": "20-контактный чип",
   "item.powerchip.chip_24": "24-контактный чип",
-
   "item.powerchip.chip_casing": "Корпус чипа",
-  "powerchip.component.property.chip_schematic": "Схема",
+  "item.powerchip.incomplete_chip": "Незавершённый чип",
 
+  "powerchip.component.property.chip_name": "Название чипа",
+  "powerchip.component.property.chip_schematic": "Схема",
+  "powerchip.component.property.chip_color": "Цвет текста",
+  "powerchip.component.property.pin_count": "Размер чипа",
   "powerchip.component.property.pin": "Номер контакта",
   "powerchip.component.property.pin_label": "Метка контакта",
-  "powerchip.component.property.pin_count": "Размер чипа",
-  "powerchip.component.property.chip_color": "Цвет текста",
-  "powerchip.component.property.chip_name": "Название чипа",
 
   "powerchip.component.gui.pin_hint": "Контакт %s",
   "powerchip.component.gui.pin_count_label": "%s контактов",
