@@ -9,6 +9,7 @@
   "item.powerchip.chip_20": "Puce à 20 Broches",
   "item.powerchip.chip_24": "Puce à 24 Broches",
   "item.powerchip.chip_casing": "Boîtier de puce",
+  "item.powerchip.incomplete_chip": "Puce incomplète",
 
   "powerchip.component.property.chip_name": "Nom de la puce",
   "powerchip.component.property.chip_schematic": "Schéma",
