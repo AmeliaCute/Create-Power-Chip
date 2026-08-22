@@ -5,14 +5,14 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ChipComponentNestedTerminalMixin",
-    "ThermalBuilderAccessor"
+    "ThermalBuilderAccessor",
+    "SequencedAssemblyRecipeMixin"
   ],
   "client": [
     "AbstractContainerScreenAccessor",
     "CircuitDesignTableEditScreenMixin",
     "CircuitSchematicRenderMixin",
-    "IOPinEditorScreenMixin",
-    "SequencedAssemblyRecipeMixin"
+    "IOPinEditorScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
