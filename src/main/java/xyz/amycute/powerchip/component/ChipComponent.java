@@ -45,7 +45,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
     public static final int[] SIZES = new int[]{ 4, 6, 8, 10, 12, 14, 16, 20, 24 };
     public static final int GLOBAL_MAX_IO = SIZES[SIZES.length - 1];
     public static final int MAX_CHIP_DEPTH = 5;
-    public static final float MAX_POWER_PER_PIN = 250f;
+    public static final float MAX_POWER_PER_PIN = 1500f;
     public static final SchematicProperty SCHEMATIC = new SchematicProperty(PowerChips.MOD_ID, "chip_schematic");
 
     private final int pinCount;

@@ -9,6 +9,7 @@
   "item.powerchip.chip_20": "20-Pin Chip",
   "item.powerchip.chip_24": "24-Pin Chip",
   "item.powerchip.chip_casing": "Chip Casing",
+  "item.powerchip.incomplete_chip": "Incomplete Chip",
 
   "powerchip.component.property.chip_name": "Chip name",
   "powerchip.component.property.chip_schematic": "Schematic",
