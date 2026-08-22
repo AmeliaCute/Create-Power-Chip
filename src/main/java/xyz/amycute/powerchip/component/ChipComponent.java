@@ -174,7 +174,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
             ThermalBuilderAccessor accessor = (ThermalBuilderAccessor) (Object) builder;
             float dissipationFactor = accessor.powerchip$getDissipationFactor();
             float overheatTemperature = accessor.powerchip$getOverheatTemperature();
-            total += dissipationFactor * (overheatTemperature - ThermalBehaviour.BASE_TEMPERATURE);
+            total += dissipationFactor * (overheatTemperature - ThermalBehaviour.STANDARD_TEMPERATURE);
         }
         return total;
     }

@@ -67,7 +67,7 @@ dependencies {
     runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")
 
-    implementation "curse.maven:power-grid-1321420:7999746"
+    implementation "curse.maven:power-grid-1321420:8646886"
 }
 
 def generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
