@@ -25,7 +25,7 @@ import java.util.List;
 @Mixin(SequencedAssemblyRecipe.class)
 public abstract class SequencedAssemblyRecipeMixin
 {
-    @Inject(method = "advance(Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/util/RandomSource;)Lnet/minecraft/world/item/ItemStack;", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "advance(Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/util/RandomSource;)Lnet/minecraft/world/item/ItemStack;", at = @At("RETURN"), cancellable = true, order = 10)
     private void powerchip$carrySchematicThroughSequence(ResourceLocation id, ItemStack input, RandomSource random, CallbackInfoReturnable<ItemStack> cir)
     {
         if (!input.has(DataComponents.CUSTOM_DATA)) return;
