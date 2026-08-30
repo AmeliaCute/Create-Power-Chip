@@ -22,6 +22,15 @@
   "powerchip.component.gui.pin_count_label": "%s pins",
   "powerchip.component.gui.size_label": "Size: %s",
 
+  "powerchip.command.compile.success": "Compiled %s chip(s)",
+  "powerchip.command.compile.no_schematic": "The held item contains no chip schematic",
+  "powerchip.command.compile.invalid_schematic": "The stored schematic could not be read",
+  "powerchip.command.compile.no_pins": "The schematic has no IO pin defining the chip size",
+  "powerchip.command.compile.unknown_size": "No chip item exists for that pin count",
+  "powerchip.command.compile.too_deep": "The schematic exceeds the maximum chip nesting depth",
+  "powerchip.command.compile.too_much_power": "The schematic dissipates too much power for that pin count",
+  "powerchip.command.compile.already_compiled": "That item is already a compiled chip",
+
   "component.powerchip.io_pin.0": "IO",
 
   "component.powerchip.chip.0": "Pin 0",
