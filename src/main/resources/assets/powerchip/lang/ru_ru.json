@@ -1,4 +1,5 @@
 {
+  "item.powerchip.incomplete_chip": "Незавершённый чип",
   "item.powerchip.chip_4": "4-контактный чип",
   "item.powerchip.chip_6": "6-контактный чип",
   "item.powerchip.chip": "8-контактный чип",
@@ -8,15 +9,24 @@
   "item.powerchip.chip_16": "16-контактный чип",
   "item.powerchip.chip_20": "20-контактный чип",
   "item.powerchip.chip_24": "24-контактный чип",
-  "item.powerchip.chip_casing": "Корпус чипа",
-  "item.powerchip.incomplete_chip": "Незавершённый чип",
 
-  "powerchip.component.property.chip_name": "Название чипа",
+  "item.powerchip.chip_casing": "Корпус чипа",
   "powerchip.component.property.chip_schematic": "Схема",
-  "powerchip.component.property.chip_color": "Цвет текста",
-  "powerchip.component.property.pin_count": "Размер чипа",
+
+  "powerchip.command.compile.success": "Скомпилирован(-о) %s чип(-а/-ов)",
+  "powerchip.command.compile.no_schematic": "Предмет в руке не содержит схемы чипа",
+  "powerchip.command.compile.invalid_schematic": "Не удалось прочитать сохранённую схему",
+  "powerchip.command.compile.no_pins": "В схеме нет В/В-контакта, определяющего размер чипа",
+  "powerchip.command.compile.unknown_size": "Нет чипа с указанным количеством контактов",
+  "powerchip.command.compile.too_deep": "Схема превышает максимальную глубину вложенности чипа",
+  "powerchip.command.compile.too_much_power": "Схема потребляет слишком много энергии для такого количества контактов",
+  "powerchip.command.compile.already_compiled": "Этот предмет уже является скомпилированным чипом",
+
   "powerchip.component.property.pin": "Номер контакта",
   "powerchip.component.property.pin_label": "Метка контакта",
+  "powerchip.component.property.pin_count": "Размер чипа",
+  "powerchip.component.property.chip_color": "Цвет текста",
+  "powerchip.component.property.chip_name": "Название чипа",
 
   "powerchip.component.gui.pin_hint": "Контакт %s",
   "powerchip.component.gui.pin_count_label": "%s контактов",
@@ -48,7 +58,7 @@
   "component.powerchip.chip.21.short": "21",
   "component.powerchip.chip.22.short": "22",
   "component.powerchip.chip.23.short": "23",
-  
+
   "component.powerchip.chip.0": "Контакт 0",
   "component.powerchip.chip.1": "Контакт 1",
   "component.powerchip.chip.2": "Контакт 2",
