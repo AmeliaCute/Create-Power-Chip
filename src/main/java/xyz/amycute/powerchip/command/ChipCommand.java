@@ -42,7 +42,7 @@ public final class ChipCommand
             return 0;
         }
 
-        ChipAssembly.Result result = ChipAssembly.convert(held, held.getCount());
+        ChipAssembly.Result result = ChipAssembly.convert(player.registryAccess(), held, held.getCount());
         if (!result.ok())
         {
             source.sendFailure(Component.translatable(KEY_PREFIX + result.failure().key()));

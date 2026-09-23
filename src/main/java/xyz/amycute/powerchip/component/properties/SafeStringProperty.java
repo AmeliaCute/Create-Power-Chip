@@ -1,5 +1,6 @@
 package xyz.amycute.powerchip.component.properties;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.Tag;
 import org.jetbrains.annotations.Nullable;
 import org.patryk3211.powergrid.circuits.components.properties.StringProperty;
@@ -26,8 +27,8 @@ public class SafeStringProperty extends StringProperty
     }
 
     @Override
-    public String read(@Nullable Tag element)
+    public String read(HolderLookup.Provider registries, @Nullable Tag element)
     {
-        return limit(super.read(element));
+        return limit(super.read(registries, element));
     }
 }
