@@ -1,5 +1,6 @@
 package xyz.amycute.powerchip.component.properties;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import org.jetbrains.annotations.Nullable;
@@ -26,14 +27,14 @@ public class SchematicProperty extends ComponentProperty<CompoundTag>
     }
 
     @Override
-    public CompoundTag read(@Nullable Tag element)
+    public CompoundTag read(HolderLookup.Provider registries, @Nullable Tag element)
     {
         if (element == null || element.getId() != Tag.TAG_COMPOUND) return new CompoundTag();
         return ((CompoundTag) element).copy();
     }
 
     @Override
-    public Tag write(CompoundTag value)
+    public Tag write(HolderLookup.Provider registries, CompoundTag value)
     {
         return value == null ? new CompoundTag() : value.copy();
     }

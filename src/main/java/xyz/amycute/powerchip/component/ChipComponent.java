@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.patryk3211.powergrid.circuits.circuitboard.CircuitBoardBlockEntity;
@@ -28,6 +29,7 @@ import xyz.amycute.powerchip.PowerChips;
 import xyz.amycute.powerchip.component.properties.SchematicProperty;
 import xyz.amycute.powerchip.component.renderings.ChipLabelRenderer;
 import xyz.amycute.powerchip.mixin.ThermalBuilderAccessor;
+import xyz.amycute.powerchip.util.Registries;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -61,11 +63,11 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
         return pinCount;
     }
 
-    public static int designatedSize(CompoundTag schematicTag)
+    public static int designatedSize(HolderLookup.Provider registries, CompoundTag schematicTag)
     {
         if (schematicTag == null || schematicTag.isEmpty()) return -1;
 
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(registries, schematicTag);
         if (schematic == null) return -1;
 
         for (PlacedComponent inner : schematic.components())
@@ -108,17 +110,17 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
         return null;
     }
 
-    public static int getChipDepth(CompoundTag schematicTag)
+    public static int getChipDepth(HolderLookup.Provider registries, CompoundTag schematicTag)
     {
-        return getChipDepth(schematicTag, 0);
+        return getChipDepth(registries, schematicTag, 0);
     }
 
-    private static int getChipDepth(CompoundTag schematicTag, int currentDepth)
+    private static int getChipDepth(HolderLookup.Provider registries, CompoundTag schematicTag, int currentDepth)
     {
         if (currentDepth >= MAX_CHIP_DEPTH) return currentDepth;
         if (schematicTag == null || schematicTag.isEmpty()) return currentDepth;
 
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(registries, schematicTag);
 
         if (schematic == null) return currentDepth;
 
@@ -131,7 +133,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
 
             if (innerSchematic == null || innerSchematic.isEmpty()) continue;
 
-            int depth = getChipDepth(innerSchematic, currentDepth + 1);
+            int depth = getChipDepth(registries, innerSchematic, currentDepth + 1);
 
             if (depth > maxDepth) maxDepth = depth;
             if (maxDepth >= MAX_CHIP_DEPTH) break;
@@ -139,14 +141,14 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
         return maxDepth;
     }
 
-    public static boolean exceedsMaxDepth(CompoundTag schematicTag)
+    public static boolean exceedsMaxDepth(HolderLookup.Provider registries, CompoundTag schematicTag)
     {
-        return getChipDepth(schematicTag) >= MAX_CHIP_DEPTH;
+        return getChipDepth(registries, schematicTag) >= MAX_CHIP_DEPTH;
     }
 
-    public static float totalDissipatedPower(CompoundTag schematicTag)
+    public static float totalDissipatedPower(HolderLookup.Provider registries, CompoundTag schematicTag)
     {
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(registries, schematicTag);
         if (schematic == null) return 0f;
 
         List<ThermalBuilder> collected = new ArrayList<>();
@@ -179,9 +181,9 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
         return total;
     }
 
-    public static boolean exceedsMaxPower(CompoundTag schematicTag, int pinCount)
+    public static boolean exceedsMaxPower(HolderLookup.Provider registries, CompoundTag schematicTag, int pinCount)
     {
-        return totalDissipatedPower(schematicTag) > MAX_POWER_PER_PIN * pinCount;
+        return totalDissipatedPower(registries, schematicTag) > MAX_POWER_PER_PIN * pinCount;
     }
 
     @Override
@@ -322,7 +324,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
 
         if (tag == null || tag.isEmpty()) return null;
 
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(tag);
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(Registries.of(placed), tag);
         placed.customData = schematic;
         return schematic;
     }

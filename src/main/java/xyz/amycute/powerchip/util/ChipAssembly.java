@@ -1,6 +1,7 @@
 package xyz.amycute.powerchip.util;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -76,16 +77,16 @@ public final class ChipAssembly
         return tag.getCompound(ModNbt.NBT_SCHEMATIC).copy();
     }
 
-    public static Result convert(ItemStack input, int count)
+    public static Result convert(HolderLookup.Provider registries, ItemStack input, int count)
     {
-        return fromSchematic(schematicOf(input), count);
+        return fromSchematic(registries, schematicOf(input), count);
     }
 
-    public static Result fromSchematic(CompoundTag schematicTag, int count)
+    public static Result fromSchematic(HolderLookup.Provider registries, CompoundTag schematicTag, int count)
     {
         if (schematicTag == null || schematicTag.isEmpty()) return NO_SCHEMATIC;
 
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(registries, schematicTag);
         if (schematic == null) return INVALID_SCHEMATIC;
 
         int size = -1;
@@ -114,8 +115,8 @@ public final class ChipAssembly
         DeferredHolder<Item, Item> holder = ModItems.CHIPS.get(size);
         if (holder == null) return UNKNOWN_SIZE;
 
-        if (ChipComponent.exceedsMaxDepth(schematicTag)) return TOO_DEEP;
-        if (ChipComponent.exceedsMaxPower(schematicTag, size)) return TOO_MUCH_POWER;
+        if (ChipComponent.exceedsMaxDepth(registries, schematicTag)) return TOO_DEEP;
+        if (ChipComponent.exceedsMaxPower(registries, schematicTag, size)) return TOO_MUCH_POWER;
 
         ItemStack out = new ItemStack(holder.get(), count);
 

@@ -2,6 +2,7 @@ package xyz.amycute.powerchip.mixin;
 
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -19,6 +20,7 @@ import xyz.amycute.powerchip.component.ChipComponent;
 import xyz.amycute.powerchip.component.ChipNameComponent;
 import xyz.amycute.powerchip.registry.ModItems;
 import xyz.amycute.powerchip.registry.ModNbt;
+import xyz.amycute.powerchip.util.Registries;
 
 import java.util.List;
 
@@ -42,8 +44,9 @@ public abstract class SequencedAssemblyRecipeMixin
         if (!isIncomplete && !isFinalChip) return;
 
         CompoundTag schematicTag = inputTag.getCompound(ModNbt.NBT_SCHEMATIC).copy();
+        HolderLookup.Provider registries = Registries.get();
 
-        if (isFinalChip && ChipComponent.exceedsMaxDepth(schematicTag))
+        if (isFinalChip && ChipComponent.exceedsMaxDepth(registries, schematicTag))
         {
             forceIncomplete(schematicTag, cir);
             return;
@@ -52,14 +55,14 @@ public abstract class SequencedAssemblyRecipeMixin
         int size = -1;
         if (isFinalChip)
         {
-            size = ChipComponent.designatedSize(schematicTag);
+            size = ChipComponent.designatedSize(registries, schematicTag);
             if (size < 0)
             {
                 forceIncomplete(schematicTag, cir);
                 return;
             }
 
-            if (ChipComponent.exceedsMaxPower(schematicTag, size))
+            if (ChipComponent.exceedsMaxPower(registries, schematicTag, size))
             {
                 forceIncomplete(schematicTag, cir);
                 return;
@@ -73,7 +76,7 @@ public abstract class SequencedAssemblyRecipeMixin
         result.set(DataComponents.CUSTOM_DATA, CustomData.of(outTag));
         if (isFinalChip)
         {
-            String chipName = findChipName(schematicTag);
+            String chipName = findChipName(registries, schematicTag);
             result.set(DataComponents.CUSTOM_NAME, Component.literal(chipName != null ? chipName : "CHIP"));
 
             List<Component> loreLines = new java.util.ArrayList<>();
@@ -95,9 +98,9 @@ public abstract class SequencedAssemblyRecipeMixin
         cir.setReturnValue(incomplete);
     }
 
-    private static String findChipName(CompoundTag schematicTag)
+    private static String findChipName(HolderLookup.Provider registries, CompoundTag schematicTag)
     {
-        var schematic = CircuitSchematic.fromNbt(schematicTag);
+        var schematic = CircuitSchematic.fromNbt(registries, schematicTag);
         if (schematic == null) return null;
 
         for (var placed : schematic.components())
