@@ -4,7 +4,6 @@
   "package": "xyz.amycute.powerchip.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ChipComponentNestedTerminalMixin",
     "ThermalBuilderAccessor",
     "SequencedAssemblyRecipeMixin"
   ],
