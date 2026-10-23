@@ -272,16 +272,6 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
                 int pin = innerPlaced.get(IOPinComponent.PIN);
                 provider = i -> pin < pinCount ? builder.terminalNode(pin) : new FloatingNode();
             }
-            else if (innerPlaced.component.emitExternalTerminals())
-            {
-                int baseIndex = innerExternalBundleIndex[0];
-                provider = i ->
-                {
-                    int pin = baseIndex + i;
-                    return pin < pinCount ? builder.terminalNode(pin) : new FloatingNode();
-                };
-                innerExternalBundleIndex[0] += nodeIndexSet.size();
-            }
             else
             {
                 var nodes = new ArrayList<FloatingNode>(nodeIndexSet.size());
