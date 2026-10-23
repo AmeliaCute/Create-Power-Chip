@@ -6,22 +6,23 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import xyz.amycute.powerchip.PowerChips;
 
 import java.util.Set;
 import java.util.UUID;
 
-@EventBusSubscriber(modid = PowerChips.MOD_ID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = PowerChips.MOD_ID, value = Dist.CLIENT)
 public final class EasterEggNameFormatter
 {
     private static final Set<UUID> GOONING_UUIDS = Set.of(
         UUID.fromString("e33c9383-1949-4848-9456-e16c88a67b77"), // AMC
         UUID.fromString("30c8af5c-7965-45ff-8da4-f36896c36bb0"), // EMQ
-        UUID.fromString("e90240dd-92d2-4a08-b241-55896ae04c94") // AMQ
+        UUID.fromString("e90240dd-92d2-4a08-b241-55896ae04c94"), // AMQ
+        UUID.fromString("91c18697-776f-4224-8f77-6a96d3192437") // cylian91, shamelessly added herself in the 1.20.1 port
     );
 
     @SubscribeEvent

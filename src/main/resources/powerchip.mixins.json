@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "xyz.amycute.powerchip.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_17",
   "mixins": [
     "ThermalBuilderAccessor",
     "SequencedAssemblyRecipeMixin"
@@ -15,5 +15,6 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "refmap": "powerchip.mixins.refmap.json"
 }

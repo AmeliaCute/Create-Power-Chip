@@ -4,7 +4,7 @@ import org.patryk3211.powergrid.circuits.thermal.ThermalBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(ThermalBuilder.class)
+@Mixin(value = ThermalBuilder.class, remap = false)
 public interface ThermalBuilderAccessor
 {
     @Accessor("dissipationFactor")

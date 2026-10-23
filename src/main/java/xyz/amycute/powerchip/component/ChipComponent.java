@@ -67,7 +67,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
     {
         if (schematicTag == null || schematicTag.isEmpty()) return -1;
 
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(registries, schematicTag);
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
         if (schematic == null) return -1;
 
         for (PlacedComponent inner : schematic.components())
@@ -120,7 +120,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
         if (currentDepth >= MAX_CHIP_DEPTH) return currentDepth;
         if (schematicTag == null || schematicTag.isEmpty()) return currentDepth;
 
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(registries, schematicTag);
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
 
         if (schematic == null) return currentDepth;
 
@@ -148,7 +148,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
 
     public static float totalDissipatedPower(HolderLookup.Provider registries, CompoundTag schematicTag)
     {
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(registries, schematicTag);
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
         if (schematic == null) return 0f;
 
         List<ThermalBuilder> collected = new ArrayList<>();
@@ -314,7 +314,7 @@ public class ChipComponent extends OrientableComponent implements IRenderedCompo
 
         if (tag == null || tag.isEmpty()) return null;
 
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(Registries.of(placed), tag);
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(tag);
         placed.customData = schematic;
         return schematic;
     }
