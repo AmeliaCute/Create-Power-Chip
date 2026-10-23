@@ -1,8 +1,9 @@
 package xyz.amycute.powerchip.registry;
 
 import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import xyz.amycute.powerchip.PowerChips;
 import xyz.amycute.powerchip.component.ChipComponent;
 
@@ -11,16 +12,16 @@ import java.util.Map;
 
 public class ModItems
 {
-    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(PowerChips.MOD_ID);
-    public static final DeferredHolder<Item, Item> CHIP_CASING = ITEMS.registerSimpleItem("chip_casing", new Item.Properties());
-    public static final DeferredHolder<Item, Item> INCOMPLETE_CHIP = ITEMS.registerSimpleItem("incomplete_chip", new Item.Properties());
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, PowerChips.MOD_ID);
+    public static final RegistryObject<Item> CHIP_CASING = ITEMS.register("chip_casing", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> INCOMPLETE_CHIP = ITEMS.register("incomplete_chip", () -> new Item(new Item.Properties()));
 
-    public static final Map<Integer, DeferredHolder<Item, Item>> CHIPS = buildChips();
+    public static final Map<Integer, RegistryObject<Item>> CHIPS = buildChips();
 
-    private static Map<Integer, DeferredHolder<Item, Item>> buildChips()
+    private static Map<Integer, RegistryObject<Item>> buildChips()
     {
-        Map<Integer, DeferredHolder<Item, Item>> map = new LinkedHashMap<>();
-        for (int pinCount : ChipComponent.SIZES) map.put(pinCount, ITEMS.registerSimpleItem(ModComponents.chipId(pinCount), new Item.Properties()));
+        Map<Integer, RegistryObject<Item>> map = new LinkedHashMap<>();
+        for (int pinCount : ChipComponent.SIZES) map.put(pinCount, ITEMS.register(ModComponents.chipId(pinCount), () -> new Item(new Item.Properties())));
         return map;
     }
 

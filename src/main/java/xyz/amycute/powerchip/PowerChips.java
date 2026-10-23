@@ -4,9 +4,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.patryk3211.powergrid.PowerGrid;
 import org.patryk3211.powergrid.forge.PowerGridImpl;
 import xyz.amycute.powerchip.registry.ModItems;
@@ -16,10 +17,10 @@ public class PowerChips
 {
     public static final String MOD_ID = "powerchip";
 
-    public PowerChips(IEventBus modBus)
+    public PowerChips(FMLJavaModLoadingContext ctx)
     {
-        ModItems.ITEMS.register(modBus);
-        modBus.addListener(this::addTab);
+        ModItems.ITEMS.register(ctx.getModEventBus());
+        ctx.getModEventBus().addListener(this::addTab);
     }
 
     private void addTab(BuildCreativeModeTabContentsEvent event)

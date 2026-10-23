@@ -13,6 +13,6 @@
     }
   ],
   "results": [
-    { "id": "powerchip:chip_casing" }
+    { "item": "powerchip:chip_casing" }
   ]
 }
