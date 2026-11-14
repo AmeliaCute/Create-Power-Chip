@@ -80,7 +80,7 @@ dependencies {
     modRuntimeOnly("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}")
     modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
 
-    modImplementation "org.patryk3211.powergrid:powergrid-forge:mc1.20.1-0.6.2"
+    modImplementation "curse.maven:power-grid-1321420:8880703"
     modImplementation "dev.architectury:architectury-forge:${architectury_api_version}"
 }
 
