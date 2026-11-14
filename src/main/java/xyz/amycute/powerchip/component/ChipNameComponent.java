@@ -1,6 +1,8 @@
 package xyz.amycute.powerchip.component;
 
 import com.google.common.collect.ImmutableCollection;
+import net.minecraft.util.FastColor;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import org.jetbrains.annotations.NotNull;
 import org.patryk3211.powergrid.circuits.circuitboard.ComponentCircuitBuilder;
@@ -52,7 +54,12 @@ public class ChipNameComponent extends Component
         {
             DyeColor color = placed.get(COLOR);
             if (color == null) return 0xFFFFFFFF;
-            return 0xFF000000 | color.getTextureDiffuseColor();
+            float[] textureDiffuseColors = color.getTextureDiffuseColors();
+            //mostly stolen from 1.21.1 FastColor.ARGB32.colorFromFloat
+            return FastColor.ARGB32.color(0xFF,
+                    Mth.floor(textureDiffuseColors[0] * 255),
+                    Mth.floor(textureDiffuseColors[1] * 255),
+                    Mth.floor(textureDiffuseColors[2] * 255));
         }
         catch (IllegalArgumentException e)
         {

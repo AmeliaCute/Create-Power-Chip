@@ -2,15 +2,14 @@ package xyz.amycute.powerchip.util;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.ItemLore;
-import net.neoforged.neoforge.registries.DeferredHolder;
+import net.minecraftforge.registries.RegistryObject;
 import org.patryk3211.powergrid.circuits.schematic.CircuitSchematic;
 import org.patryk3211.powergrid.circuits.schematic.PlacedComponent;
 import xyz.amycute.powerchip.component.ChipComponent;
@@ -68,10 +67,9 @@ public final class ChipAssembly
     {
         if (stack.isEmpty()) return null;
 
-        CustomData data = stack.get(DataComponents.CUSTOM_DATA);
-        if (data == null) return null;
+        CompoundTag tag = stack.getTag();
+        if (tag == null) return null;
 
-        CompoundTag tag = data.getUnsafe();
         if (!tag.contains(ModNbt.NBT_SCHEMATIC, Tag.TAG_COMPOUND)) return null;
 
         return tag.getCompound(ModNbt.NBT_SCHEMATIC).copy();
@@ -86,7 +84,7 @@ public final class ChipAssembly
     {
         if (schematicTag == null || schematicTag.isEmpty()) return NO_SCHEMATIC;
 
-        CircuitSchematic schematic = CircuitSchematic.fromNbt(registries, schematicTag);
+        CircuitSchematic schematic = CircuitSchematic.fromNbt(schematicTag);
         if (schematic == null) return INVALID_SCHEMATIC;
 
         int size = -1;
@@ -112,7 +110,7 @@ public final class ChipAssembly
 
         if (size < 0) return NO_PINS;
 
-        DeferredHolder<Item, Item> holder = ModItems.CHIPS.get(size);
+        RegistryObject<Item> holder = ModItems.CHIPS.get(size);
         if (holder == null) return UNKNOWN_SIZE;
 
         if (ChipComponent.exceedsMaxDepth(registries, schematicTag)) return TOO_DEEP;
@@ -120,11 +118,12 @@ public final class ChipAssembly
 
         ItemStack out = new ItemStack(holder.get(), count);
 
-        CompoundTag data = new CompoundTag();
+        CompoundTag data = out.getOrCreateTag();
         data.put(ModNbt.NBT_SCHEMATIC, schematicTag);
-        out.set(DataComponents.CUSTOM_DATA, CustomData.of(data));
-        out.set(DataComponents.CUSTOM_NAME, Component.literal(name != null ? name : "CHIP"));
-        out.set(DataComponents.LORE, new ItemLore(List.of(Component.literal(size + " Pins").withStyle(ChatFormatting.DARK_GRAY))));
+        out.setHoverName(Component.literal(name != null ? name : "CHIP"));
+        ListTag lore = new ListTag();
+        lore.add(StringTag.valueOf(Component.Serializer.toJson(Component.literal(size + " Pins").withStyle(ChatFormatting.DARK_GRAY))));
+        data.put(ItemStack.TAG_LORE, lore);
 
         return new Result(out, Failure.NONE);
     }

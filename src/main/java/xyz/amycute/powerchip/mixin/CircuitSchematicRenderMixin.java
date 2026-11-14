@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.amycute.powerchip.component.ChipComponent;
 
-@Mixin(CircuitSchematicRender.class)
+@Mixin(value = CircuitSchematicRender.class, remap = false)
 public abstract class CircuitSchematicRenderMixin
 {
     @Inject(method = "renderComponents(Lorg/patryk3211/powergrid/circuits/schematic/CircuitSchematic;Lnet/minecraft/client/gui/GuiGraphics;IIIII)V", at = @At("TAIL"))

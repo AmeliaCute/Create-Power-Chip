@@ -1,9 +1,9 @@
 package xyz.amycute.powerchip.registry;
 
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.registries.RegisterEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.RegisterEvent;
 import org.patryk3211.powergrid.circuits.components.ComponentRegistry;
 import org.patryk3211.powergrid.circuits.schematic.ComponentFootprint;
 import xyz.amycute.powerchip.PowerChips;
@@ -14,7 +14,7 @@ import xyz.amycute.powerchip.component.IOPinComponent;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@EventBusSubscriber(modid = PowerChips.MOD_ID)
+@Mod.EventBusSubscriber(modid = PowerChips.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModComponents
 {
     public static final Map<Integer, ChipComponent> CHIP_COMPONENTS = buildChipComponents();

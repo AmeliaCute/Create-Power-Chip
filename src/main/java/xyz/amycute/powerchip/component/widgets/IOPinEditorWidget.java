@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import org.patryk3211.powergrid.circuits.schematic.PlacedComponent;
@@ -31,8 +32,8 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
     private static final int CONTAINER_PAD = 4;
     private static final int CHIP_PAD = 8;
 
-    private static final ResourceLocation PANEL_PIN_BG_SPRITE = ResourceLocation.fromNamespaceAndPath(PowerChips.MOD_ID, "pin_grid");
-    private static final ResourceLocation PANEL_BG_SPRITE = ResourceLocation.fromNamespaceAndPath(PowerChips.MOD_ID, "pin_editor_panel");
+    //on 1.20.1 NineSliced require the source image to 256x256, so we use an atlas
+    private static final ResourceLocation PANEL_BG_ATLAS = ResourceLocation.fromNamespaceAndPath(PowerChips.MOD_ID, "textures/gui/sprites/pin_grid_atlas.png");
     private static final int SLIDER_HITBOX_PAD = 5;
 
     private final Font textRenderer;
@@ -172,7 +173,7 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
 
         int minChipW = 55;
         chipW = Math.round(minChipW + widthT * (maxChipW - minChipW));
-        chipW = Math.clamp(chipW, 24, maxChipW);
+        chipW = Mth.clamp(chipW, 24, maxChipW);
 
         chipH = Math.max(24, totalSideH);
 
@@ -198,7 +199,7 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         int x = getX(), y = getY();
         int selected = placed.get(IOPinComponent.PIN);
 
-        ctx.blitSprite(PANEL_BG_SPRITE, x, y, PANEL_W, getHeight());
+        ctx.blitNineSliced(PANEL_BG_ATLAS, x, y, PANEL_W, getHeight(), 4, 16, 16, 0, 0);
 
         labelBox.setX(x + 6);
         labelBox.setY(y + 4);
@@ -210,7 +211,8 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         }
 
         ctx.fill(x + 4, y + LABEL_BAR_H - 1, x + PANEL_W - 4, y + LABEL_BAR_H, 0xFF8B8B8B);
-        ctx.blitSprite(PANEL_PIN_BG_SPRITE, socketX0, socketY0, socketX1 - socketX0, socketY1 - socketY0);
+        //ctx.blit(PANEL_PIN_BG_SPRITE, socketX0, socketY0, 0, 0, socketX1 - socketX0, socketY1 - socketY0, socketX1 - socketX0, socketY1 - socketY0);
+        ctx.blitNineSliced(PANEL_BG_ATLAS, socketX0, socketY0, socketX1 - socketX0, socketY1 - socketY0, 4, 16, 16, 16, 0);
 
         ctx.fill(chipX, chipY, chipX + chipW, chipY + chipH, 0xFF2B2B2B);
         ctx.fill(chipX, chipY, chipX + chipW, chipY + 2, 0xFF454545);
@@ -319,7 +321,7 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         int[] sizes = ChipComponent.SIZES;
         int count = sizes.length;
         float t = (float) (mouseX - sliderTrackX) / Math.max(1, (sliderTrackW - SLIDER_KNOB_W));
-        t = Math.clamp(t, 0f, 1f);
+        t = Mth.clamp(t, 0f, 1f);
 
         if (draggingSlider)
         {
@@ -327,7 +329,7 @@ public final class IOPinEditorWidget extends AbstractSimiWidget
         }
 
         int index = Math.round(t * (count - 1));
-        index = Math.clamp(index, 0, count - 1);
+        index = Mth.clamp(index, 0, count - 1);
         int newSize = sizes[index];
 
         if (placed.get(IOPinComponent.PIN_COUNT) != newSize)

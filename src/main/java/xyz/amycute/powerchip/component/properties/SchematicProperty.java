@@ -27,14 +27,14 @@ public class SchematicProperty extends ComponentProperty<CompoundTag>
     }
 
     @Override
-    public CompoundTag read(HolderLookup.Provider registries, @Nullable Tag element)
+    public CompoundTag read(@Nullable Tag element)
     {
         if (element == null || element.getId() != Tag.TAG_COMPOUND) return new CompoundTag();
         return ((CompoundTag) element).copy();
     }
 
     @Override
-    public Tag write(HolderLookup.Provider registries, CompoundTag value)
+    public Tag write(CompoundTag value)
     {
         return value == null ? new CompoundTag() : value.copy();
     }

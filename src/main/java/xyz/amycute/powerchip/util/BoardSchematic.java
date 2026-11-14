@@ -15,17 +15,17 @@ public final class BoardSchematic
 
     public static CompoundTag read(CircuitBoardBlockEntity be, HolderLookup.Provider registries)
     {
-        CompoundTag root = be.saveWithoutMetadata(registries);
+        CompoundTag root = be.saveWithoutMetadata();
 
         String key = cachedKey;
         if (key != null)
         {
             CompoundTag hit = ROOT.equals(key) ? root : root.getCompound(key);
-            if (!hit.isEmpty() && CircuitSchematic.fromNbt(registries, hit) != null) return hit;
+            if (!hit.isEmpty() && CircuitSchematic.fromNbt(hit) != null) return hit;
             cachedKey = null;
         }
 
-        if (CircuitSchematic.fromNbt(registries, root) != null)
+        if (CircuitSchematic.fromNbt(root) != null)
         {
             cachedKey = ROOT;
             return root;
@@ -36,7 +36,7 @@ public final class BoardSchematic
             if (root.getTagType(candidate) != Tag.TAG_COMPOUND) continue;
 
             CompoundTag child = root.getCompound(candidate);
-            if (child.isEmpty() || CircuitSchematic.fromNbt(registries, child) == null) continue;
+            if (child.isEmpty() || CircuitSchematic.fromNbt(child) == null) continue;
 
             cachedKey = candidate;
             return child;

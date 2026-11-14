@@ -26,7 +26,7 @@ import xyz.amycute.powerchip.component.widgets.PinGridPropertyWidget;
 
 import java.util.List;
 
-@Mixin(ComponentPropertiesWidget.class)
+@Mixin(value = ComponentPropertiesWidget.class, remap = false)
 public abstract class ComponentPropertiesWidgetMixin
 {
     @Shadow

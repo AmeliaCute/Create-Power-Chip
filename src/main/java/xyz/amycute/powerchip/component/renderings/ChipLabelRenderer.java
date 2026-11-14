@@ -122,6 +122,6 @@ public final class ChipLabelRenderer
 
     private static void vertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float y, float z, float u, float v, int light, int overlay)
     {
-        buffer.addVertex(pose.pose(), x, y, z).setColor(255, 255, 255, 255).setUv(u, v).setOverlay(overlay).setUv2(light & 65535, light >> 16 & 65535).setNormal(pose, 0, 1, 0);
+        buffer.vertex(pose.pose(), x, y, z).color(255, 255, 255, 255).uv(u, v).overlayCoords(overlay).uv2(light & 65535, light >> 16 & 65535).normal(pose.normal(), 0, 1, 0).endVertex();
     }
 }

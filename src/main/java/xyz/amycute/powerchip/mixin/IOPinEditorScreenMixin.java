@@ -1,6 +1,7 @@
 package xyz.amycute.powerchip.mixin;
 
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import org.jetbrains.annotations.Nullable;
 import org.patryk3211.powergrid.circuits.editor.CircuitDesignTableEditScreen;
 import org.patryk3211.powergrid.circuits.gui.ComponentPropertiesWidget;
@@ -15,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.amycute.powerchip.component.IOPinComponent;
 import xyz.amycute.powerchip.component.widgets.IOPinEditorWidget;
 
-@Mixin(CircuitDesignTableEditScreen.class)
+@Mixin(value = CircuitDesignTableEditScreen.class)
 public abstract class IOPinEditorScreenMixin extends Screen
 {
     private IOPinEditorScreenMixin(net.minecraft.network.chat.Component title)
@@ -23,7 +24,7 @@ public abstract class IOPinEditorScreenMixin extends Screen
         super(title);
     }
 
-    @Shadow
+    @Shadow(remap = false)
     private boolean changed;
 
     @Unique
@@ -45,25 +46,25 @@ public abstract class IOPinEditorScreenMixin extends Screen
         this.changed = true;
     }
 
-    @Redirect(method = "selectComponent(IIIIII)Lorg/patryk3211/powergrid/circuits/gui/CircuitEditWidget$SelectionResult;", at = @At(value = "INVOKE", target = "Lorg/patryk3211/powergrid/circuits/gui/ComponentPropertiesWidget;setComponent(Lorg/patryk3211/powergrid/circuits/schematic/PlacedComponent;Ljava/lang/Runnable;)V"))
+    @Redirect(method = "selectComponent(IIIIII)Lorg/patryk3211/powergrid/circuits/gui/CircuitEditWidget$SelectionResult;", at = @At(value = "INVOKE", target = "Lorg/patryk3211/powergrid/circuits/gui/ComponentPropertiesWidget;setComponent(Lorg/patryk3211/powergrid/circuits/schematic/PlacedComponent;Ljava/lang/Runnable;)V"), remap = false)
     private void powerchip$routeOnSelectComponent(ComponentPropertiesWidget widget, @Nullable PlacedComponent component, Runnable changeMadeCallback)
     {
         powerchip$route(widget, component, changeMadeCallback);
     }
 
-    @Redirect(method = "mouseClicked(DDI)Z", at = @At(value = "INVOKE", target = "Lorg/patryk3211/powergrid/circuits/gui/ComponentPropertiesWidget;setComponent(Lorg/patryk3211/powergrid/circuits/schematic/PlacedComponent;)V"))
+    @Redirect(method = "mouseClicked(DDI)Z", at = @At(value = "INVOKE", target = "Lorg/patryk3211/powergrid/circuits/gui/ComponentPropertiesWidget;setComponent(Lorg/patryk3211/powergrid/circuits/schematic/PlacedComponent;)V", remap = false))
     private void powerchip$routeOnMouseClicked(ComponentPropertiesWidget widget, @Nullable PlacedComponent component)
     {
         powerchip$route(widget, component, () -> {});
     }
 
-    @Redirect(method = "toolSelect(Lnet/minecraft/world/inventory/Slot;)V", at = @At(value = "INVOKE", target = "Lorg/patryk3211/powergrid/circuits/gui/ComponentPropertiesWidget;setComponent(Lorg/patryk3211/powergrid/circuits/schematic/PlacedComponent;)V"))
+    @Redirect(method = "toolSelect(Lnet/minecraft/world/inventory/Slot;)V", at = @At(value = "INVOKE", target = "Lorg/patryk3211/powergrid/circuits/gui/ComponentPropertiesWidget;setComponent(Lorg/patryk3211/powergrid/circuits/schematic/PlacedComponent;)V", remap = false), remap = false)
     private void powerchip$routeOnToolSelectSlot(ComponentPropertiesWidget widget, @Nullable PlacedComponent component)
     {
         powerchip$route(widget, component, () -> {});
     }
 
-    @Redirect(method = "toolSelect(Lnet/minecraft/world/item/Item;)V", at = @At(value = "INVOKE", target = "Lorg/patryk3211/powergrid/circuits/gui/ComponentPropertiesWidget;setComponent(Lorg/patryk3211/powergrid/circuits/schematic/PlacedComponent;)V"))
+    @Redirect(method = "toolSelect(Lnet/minecraft/world/item/Item;)V", at = @At(value = "INVOKE", target = "Lorg/patryk3211/powergrid/circuits/gui/ComponentPropertiesWidget;setComponent(Lorg/patryk3211/powergrid/circuits/schematic/PlacedComponent;)V", remap = false), remap = false)
     private void powerchip$routeOnToolSelectItem(ComponentPropertiesWidget widget, @Nullable PlacedComponent component)
     {
         powerchip$route(widget, component, () -> {});

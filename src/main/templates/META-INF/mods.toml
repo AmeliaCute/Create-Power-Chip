@@ -15,11 +15,12 @@ Addon for Create: Power Grid adding nested circuit board chip components.
 config = "powerchip.mixins.json"
 
 [[dependencies.powerchip]]
-modId = "neoforge"
+modId = "forge"
 type = "required"
 versionRange = "${neoforge_version_range}"
 ordering = "NONE"
 side = "BOTH"
+mandatory=true
 
 [[dependencies.powerchip]]
 modId = "minecraft"
@@ -27,6 +28,7 @@ type = "required"
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
+mandatory=true
 
 [[dependencies.powerchip]]
 modId = "powergrid"
@@ -34,4 +36,5 @@ type = "required"
 versionRange = "[${powergrid_version},)"
 ordering = "AFTER"
 side = "BOTH"
+mandatory=true
 

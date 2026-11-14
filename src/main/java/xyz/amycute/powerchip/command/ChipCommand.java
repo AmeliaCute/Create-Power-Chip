@@ -7,14 +7,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import xyz.amycute.powerchip.PowerChips;
 import xyz.amycute.powerchip.registry.ModItems;
 import xyz.amycute.powerchip.util.ChipAssembly;
 
-@EventBusSubscriber(modid = PowerChips.MOD_ID)
+@Mod.EventBusSubscriber(modid = PowerChips.MOD_ID)
 public final class ChipCommand
 {
     private static final String KEY_PREFIX = PowerChips.MOD_ID + ".command.compile.";
@@ -42,7 +42,7 @@ public final class ChipCommand
             return 0;
         }
 
-        ChipAssembly.Result result = ChipAssembly.convert(player.registryAccess(), held, held.getCount());
+        ChipAssembly.Result result = ChipAssembly.convert(player.level().registryAccess(), held, held.getCount());
         if (!result.ok())
         {
             source.sendFailure(Component.translatable(KEY_PREFIX + result.failure().key()));

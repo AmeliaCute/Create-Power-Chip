@@ -27,8 +27,8 @@ public class SafeStringProperty extends StringProperty
     }
 
     @Override
-    public String read(HolderLookup.Provider registries, @Nullable Tag element)
+    public String read(@Nullable Tag element)
     {
-        return limit(super.read(registries, element));
+        return limit(super.read(element));
     }
 }
